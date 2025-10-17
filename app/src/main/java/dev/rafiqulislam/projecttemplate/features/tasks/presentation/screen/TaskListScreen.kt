@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +41,8 @@ fun TaskListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     var showSearchBar by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var filterDate by remember { mutableStateOf("") }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
     var showUndoSnackbar by remember { mutableStateOf(false) }
 
@@ -47,11 +50,17 @@ fun TaskListScreen(
         viewModel.loadTasks()
     }
 
-    LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotEmpty()) {
-            viewModel.searchTasksByTitle(searchQuery)
-        } else {
-            viewModel.loadTasks()
+    LaunchedEffect(searchQuery, filterDate) {
+        when {
+            searchQuery.isNotEmpty() -> {
+                viewModel.searchTasksByTitle(searchQuery)
+            }
+            filterDate.isNotEmpty() -> {
+                viewModel.searchTasksByDueDate(filterDate)
+            }
+            else -> {
+                viewModel.loadTasks()
+            }
         }
     }
 
@@ -62,6 +71,9 @@ fun TaskListScreen(
                 actions = {
                     IconButton(onClick = { showSearchBar = !showSearchBar }) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
+                    }
+                    IconButton(onClick = { showFilterDialog = true }) {
+                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
                     }
                 }
             )
@@ -145,6 +157,21 @@ fun TaskListScreen(
                 }
             }
         }
+    }
+
+    // Filter Dialog
+    if (showFilterDialog) {
+        FilterDialog(
+            onDismiss = { showFilterDialog = false },
+            onApplyFilter = { date ->
+                filterDate = date
+                showFilterDialog = false
+            },
+            onClearFilter = {
+                filterDate = ""
+                showFilterDialog = false
+            }
+        )
     }
 }
 
@@ -393,5 +420,92 @@ private fun isOverdue(dateString: String): Boolean {
         date.isBefore(LocalDate.now())
     } catch (e: DateTimeParseException) {
         false
+    }
+}
+
+@Composable
+private fun FilterDialog(
+    onDismiss: () -> Unit,
+    onApplyFilter: (String) -> Unit,
+    onClearFilter: () -> Unit
+) {
+    var selectedDate by remember { mutableStateOf("") }
+    var showDatePicker by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Filter by Due Date") },
+        text = {
+            Column {
+                Text("Select a date to filter tasks:")
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = selectedDate,
+                    onValueChange = { selectedDate = it },
+                    label = { Text("Due Date") },
+                    placeholder = { Text("yyyy-MM-dd") },
+                    readOnly = true,
+                    onClick = { showDatePicker = true },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onApplyFilter(selectedDate) },
+                enabled = selectedDate.isNotEmpty()
+            ) {
+                Text("Apply Filter")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onClearFilter) {
+                Text("Clear Filter")
+            }
+        }
+    )
+
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = if (selectedDate.isNotEmpty()) {
+                try {
+                    LocalDate.parse(selectedDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .atStartOfDay()
+                        .atZone(java.time.ZoneId.systemDefault())
+                        .toInstant()
+                        .toEpochMilli()
+                } catch (e: Exception) {
+                    System.currentTimeMillis()
+                }
+            } else {
+                System.currentTimeMillis()
+            }
+        )
+
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            val selectedDateValue = java.time.Instant.ofEpochMilli(millis)
+                                .atZone(java.time.ZoneId.systemDefault())
+                                .toLocalDate()
+                            selectedDate = selectedDateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
