@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
@@ -80,7 +81,15 @@ fun TaskListScreen(
                         Icon(Icons.Default.Search, contentDescription = "Search")
                     }
                     IconButton(onClick = { showFilterDialog = true }) {
-                        Icon(Icons.Default.FilterList, contentDescription = "Filter")
+                        Icon(
+                            Icons.Default.FilterList, 
+                            contentDescription = "Filter",
+                            tint = if (uiState.filterDate.isNotEmpty()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            }
+                        )
                     }
                 }
             )
@@ -107,6 +116,43 @@ fun TaskListScreen(
                         .fillMaxWidth()
                         .padding(16.dp)
                 )
+            }
+
+            // Filter Status Indicator
+            if (uiState.filterDate.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.FilterList,
+                            contentDescription = "Filter Active",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Filtered by: ${formatDate(uiState.filterDate)}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.weight(1f))
+                        TextButton(
+                            onClick = { viewModel.clearFilter() }
+                        ) {
+                            Text("Clear")
+                        }
+                    }
+                }
             }
 
             when {
@@ -428,13 +474,23 @@ private fun FilterDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = selectedDate,
-                    onValueChange = { selectedDate = it },
+                    onValueChange = { 
+                        // Don't allow manual input, only through date picker
+                    },
                     label = { Text("Due Date") },
-                    placeholder = { Text("yyyy-MM-dd") },
+                    placeholder = { Text("Tap to select date (yyyy-MM-dd)") },
                     readOnly = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true }
+                        .clickable { showDatePicker = true },
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = "Select Date"
+                            )
+                        }
+                    }
                 )
             }
         },
@@ -447,8 +503,13 @@ private fun FilterDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onClearFilter) {
-                Text("Clear Filter")
+            Row {
+                TextButton(onClick = onClearFilter) {
+                    Text("Clear Filter")
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
             }
         }
     )
@@ -470,8 +531,15 @@ private fun FilterDialog(
             }
         )
 
-        DatePickerDialog(
+        AlertDialog(
             onDismissRequest = { showDatePicker = false },
+            title = { Text("Select Filter Date") },
+            text = {
+                DatePicker(
+                    state = datePickerState,
+                    modifier = Modifier.wrapContentSize()
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -492,8 +560,6 @@ private fun FilterDialog(
                     Text("Cancel")
                 }
             }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+        )
     }
 }

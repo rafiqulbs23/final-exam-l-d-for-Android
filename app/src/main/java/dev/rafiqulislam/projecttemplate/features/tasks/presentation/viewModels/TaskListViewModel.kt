@@ -171,6 +171,10 @@ class TaskListViewModel @Inject constructor(
             }
         }
     }
+
+    fun clearFilter() {
+        searchTasksByDueDate("")
+    }
 }
 
 data class TaskListUiState(
