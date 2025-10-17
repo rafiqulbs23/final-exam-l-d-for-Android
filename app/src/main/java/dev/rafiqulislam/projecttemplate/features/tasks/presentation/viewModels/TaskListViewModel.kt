@@ -2,6 +2,7 @@ package dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,11 +16,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaskListViewModel @Inject constructor(
-    private val taskRepository: TaskRepository
+    private val taskRepository: TaskRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     private val _uiState = MutableLiveData(TaskListUiState())
     val uiState: LiveData<TaskListUiState> = _uiState
+
+    // Save search and filter state
+    private var savedSearchQuery: String
+        get() = savedStateHandle.get<String>("searchQuery") ?: ""
+        set(value) = savedStateHandle.set("searchQuery", value)
+
+    private var savedFilterDate: String
+        get() = savedStateHandle.get<String>("filterDate") ?: ""
+        set(value) = savedStateHandle.set("filterDate", value)
+
+    init {
+        // Restore search and filter state
+        _uiState.value = _uiState.value?.copy(
+            searchQuery = savedSearchQuery,
+            filterDate = savedFilterDate
+        )
+    }
 
     fun loadTasks() {
         viewModelScope.launch {
@@ -51,6 +70,9 @@ class TaskListViewModel @Inject constructor(
     }
 
     fun searchTasksByTitle(title: String) {
+        savedSearchQuery = title
+        _uiState.value = _uiState.value?.copy(searchQuery = title)
+        
         if (title.isEmpty()) {
             loadTasks()
             return
@@ -85,6 +107,9 @@ class TaskListViewModel @Inject constructor(
     }
 
     fun searchTasksByDueDate(dueDate: String) {
+        savedFilterDate = dueDate
+        _uiState.value = _uiState.value?.copy(filterDate = dueDate)
+        
         viewModelScope.launch {
             _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
             
@@ -147,5 +172,7 @@ class TaskListViewModel @Inject constructor(
 data class TaskListUiState(
     val isLoading: Boolean = false,
     val tasks: List<Task> = emptyList(),
+    val searchQuery: String = "",
+    val filterDate: String = "",
     val error: String? = null
 )

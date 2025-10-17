@@ -39,15 +39,21 @@ fun TaskListScreen(
     onNavigateToEditTask: (Long) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var searchQuery by remember { mutableStateOf("") }
+    var searchQuery by remember { mutableStateOf(uiState.searchQuery) }
     var showSearchBar by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
-    var filterDate by remember { mutableStateOf("") }
+    var filterDate by remember { mutableStateOf(uiState.filterDate) }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
     var showUndoSnackbar by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadTasks()
+    }
+
+    // Sync local state with ViewModel state
+    LaunchedEffect(uiState.searchQuery, uiState.filterDate) {
+        searchQuery = uiState.searchQuery
+        filterDate = uiState.filterDate
     }
 
     LaunchedEffect(searchQuery, filterDate) {
