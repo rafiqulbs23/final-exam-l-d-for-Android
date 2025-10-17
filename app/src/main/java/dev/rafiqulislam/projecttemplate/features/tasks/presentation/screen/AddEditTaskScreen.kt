@@ -114,7 +114,7 @@ fun AddEditTaskScreen(
                         }
                         if (title.length > 50) {
                             Text(
-                                text = "Character limit exceeded. Please remove some characters.",
+                                text = "Character limit exceeded (${title.length}/50). Please remove ${title.length - 50} characters.",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall
                             )
@@ -166,7 +166,7 @@ fun AddEditTaskScreen(
                         }
                         if (description.length > 200) {
                             Text(
-                                text = "Character limit exceeded. Please remove some characters.",
+                                text = "Character limit exceeded (${description.length}/200). Please remove ${description.length - 200} characters.",
                                 color = MaterialTheme.colorScheme.error,
                                 style = MaterialTheme.typography.bodySmall
                             )
