@@ -1,5 +1,7 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
@@ -37,6 +39,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaskListScreen(
@@ -217,7 +220,8 @@ fun TaskListScreen(
                             deletedTask = task
                             showUndoSnackbar = true
                             viewModel.deleteTask(task.id ?: 0L)
-                        }
+                        },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -292,15 +296,17 @@ private fun SearchBar(
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun TaskList(
     tasks: List<Task>,
     onTaskClick: (Long) -> Unit,
     onTaskLongPress: (Long) -> Unit,
-    onTaskDelete: (Task) -> Unit
+    onTaskDelete: (Task) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -315,6 +321,7 @@ private fun TaskList(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun SwipeToDeleteTaskItem(
     task: Task,
@@ -414,6 +421,7 @@ private fun SwipeToDeleteTaskItem(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TaskItem(
@@ -506,6 +514,7 @@ private fun ErrorMessage(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun formatDate(dateString: String): String {
     return try {
         val date = LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
@@ -515,6 +524,7 @@ private fun formatDate(dateString: String): String {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 private fun isOverdue(dateString: String): Boolean {
     return try {
         val date = LocalDate.parse(dateString, DateTimeFormatter.ISO_LOCAL_DATE)
@@ -524,6 +534,7 @@ private fun isOverdue(dateString: String): Boolean {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun FilterDialog(
     onDismiss: () -> Unit,
