@@ -54,6 +54,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.compose.material3.material3)
     implementation(libs.androidx.navigation.common.android)
+    implementation(libs.androidx.compose.runtime.livedata)
 
     //noinspection UseTomlInstead
     testImplementation("junit:junit:4.13.2")

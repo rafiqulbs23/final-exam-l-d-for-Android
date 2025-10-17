@@ -8,7 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,12 +32,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.IntOffset
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +59,21 @@ fun TaskListScreen(
     var showFilterDialog by remember { mutableStateOf(false) }
     var filterDate by remember { mutableStateOf(uiState?.filterDate ?: "") }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Observe snackbar message LiveData
+    val snackbarMessage by viewModel.snackbarMessage.observeAsState()
+
+    // When message changes, show snackbar
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSnackbar()
+            }
+        }
+    }
 
     // Observe LiveData changes
     LaunchedEffect(Unit) {
@@ -87,6 +108,7 @@ fun TaskListScreen(
             searchQuery.isNotEmpty() && searchQuery.length < 3 -> {
                 // If search query is less than 3 characters, load all tasks
                 viewModel.loadTasks()
+                viewModel.showSnackbar("Please enter at least 3 characters to search")
             }
             filterDate.isNotEmpty() -> {
                 viewModel.searchTasksByDueDate(filterDate)
@@ -100,7 +122,7 @@ fun TaskListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Tasks") },
+                title = { Text("My Tasks List") },
                 actions = {
                     IconButton(onClick = { showSearchBar = !showSearchBar }) {
                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -309,21 +331,26 @@ private fun TaskList(
     onTaskDelete: (Task) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier.fillMaxHeight(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(tasks) { task ->
-            SwipeToDeleteTaskItem(
-                task = task,
-                onClick = { onTaskClick(task.id ?: 0L) },
-                onLongPress = { onTaskLongPress(task.id ?: 0L) },
-                onDelete = { onTaskDelete(task) }
-            )
+
+
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(tasks) { task ->
+                SwipeToDeleteTaskItem(
+                    task = task,
+                    onClick = { onTaskClick(task.id ?: 0L) },
+                    onLongPress = { onTaskLongPress(task.id ?: 0L) },
+                    onDelete = { onTaskDelete(task) }
+                )
+            }
         }
     }
-}
+
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -368,19 +395,17 @@ private fun SwipeToDeleteTaskItem(
             }
         }
 
-        // Task content
+        // Foreground card (the swipeable content)
         Card(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .offset(x = offsetX.dp)
+                .offset { IntOffset(offsetX.roundToInt(), 0) } // smoother drag
                 .pointerInput(Unit) {
-                    detectTapGestures(
-                        onLongPress = { onLongPress() }
-                    )
+                    detectTapGestures(onLongPress = { onLongPress() })
                 }
                 .pointerInput(Unit) {
-                    detectDragGestures(
+                    detectHorizontalDragGestures(      // 👈 only handle horizontal drags
                         onDragEnd = {
                             if (offsetX < maxOffset / 2) {
                                 onDelete()
@@ -388,19 +413,17 @@ private fun SwipeToDeleteTaskItem(
                             offsetX = 0f
                         }
                     ) { _, dragAmount ->
-                        offsetX = (offsetX + dragAmount.x).coerceIn(maxOffset, 0f)
+                        offsetX = (offsetX + dragAmount).coerceIn(maxOffset, 0f)
                     }
                 }
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     text = task.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 if (!task.description.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -409,7 +432,7 @@ private fun SwipeToDeleteTaskItem(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Due: ${formatDate(task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE))}",
@@ -424,6 +447,7 @@ private fun SwipeToDeleteTaskItem(
         }
     }
 }
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -603,8 +627,8 @@ private fun FilterDialog(
                     Button(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
-                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
-                                    .atZone(java.time.ZoneId.systemDefault())
+                                val selectedDate = Instant.ofEpochMilli(millis)
+                                    .atZone(ZoneId.systemDefault())
                                     .toLocalDate()
                                 onApplyFilter(selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
                             }

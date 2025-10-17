@@ -32,6 +32,8 @@ class TaskListViewModel @Inject constructor(
 
     private val _uiState = MutableLiveData(TaskListUiState())
     val uiState: LiveData<TaskListUiState> = _uiState
+    private val _snackbarMessage = MutableLiveData<String?>()
+    val snackbarMessage: LiveData<String?> = _snackbarMessage
 
     // Save search and filter state
     private var savedSearchQuery: String
@@ -73,6 +75,18 @@ class TaskListViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    // Function to trigger snackbar message
+    fun showSnackbar(message: String) {
+        viewModelScope.launch {
+            _snackbarMessage.value = message
+        }
+    }
+
+    // Optional: Clear message after showing (prevents showing again after recomposition)
+    fun clearSnackbar() {
+        _snackbarMessage.value = null
     }
 
     fun searchTasksByTitle(title: String) {
