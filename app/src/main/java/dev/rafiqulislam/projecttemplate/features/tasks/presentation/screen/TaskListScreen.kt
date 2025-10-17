@@ -74,8 +74,9 @@ fun TaskListScreen(
     LaunchedEffect(searchQuery, filterDate) {
         when {
             searchQuery.isNotEmpty() && searchQuery.length >= 3 -> {
-                // Debounce search by 500ms
-                delay(500)
+                // Debounce search by 400ms
+                delay(400)
+                // Double-check the query length after delay to ensure it's still valid
                 if (searchQuery.length >= 3) {
                     viewModel.searchTasksByTitle(searchQuery)
                 }
