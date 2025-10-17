@@ -1,5 +1,7 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -105,6 +107,7 @@ class TaskListViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun searchTasksByDueDate(dueDate: String) {
         savedFilterDate = dueDate
         _uiState.value = _uiState.value.copy(filterDate = dueDate)
@@ -172,6 +175,7 @@ class TaskListViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun clearFilter() {
         searchTasksByDueDate("")
     }
