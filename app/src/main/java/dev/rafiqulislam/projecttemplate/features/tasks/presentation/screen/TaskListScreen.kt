@@ -25,7 +25,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import dev.rafiqulislam.core.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
 import java.time.LocalDate
@@ -39,11 +40,18 @@ fun TaskListScreen(
     onNavigateToAddTask: () -> Unit,
     onNavigateToEditTask: (Long) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var searchQuery by remember { mutableStateOf(uiState.searchQuery) }
+    var uiState by remember { mutableStateOf(viewModel.uiState.value) }
+    var searchQuery by remember { mutableStateOf(uiState?.searchQuery ?: "") }
     var showSearchBar by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
-    var filterDate by remember { mutableStateOf(uiState.filterDate) }
+    var filterDate by remember { mutableStateOf(uiState?.filterDate ?: "") }
+
+    // Observe LiveData changes
+    LaunchedEffect(Unit) {
+        viewModel.uiState.observeForever { newState ->
+            uiState = newState
+        }
+    }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
     var showUndoSnackbar by remember { mutableStateOf(false) }
 
@@ -52,9 +60,9 @@ fun TaskListScreen(
     }
 
     // Sync local state with ViewModel state
-    LaunchedEffect(uiState.searchQuery, uiState.filterDate) {
-        searchQuery = uiState.searchQuery
-        filterDate = uiState.filterDate
+    LaunchedEffect(uiState?.searchQuery, uiState?.filterDate) {
+        searchQuery = uiState?.searchQuery ?: ""
+        filterDate = uiState?.filterDate ?: ""
     }
 
     LaunchedEffect(searchQuery, filterDate) {
@@ -83,7 +91,7 @@ fun TaskListScreen(
                         Icon(
                             Icons.Default.FilterList, 
                             contentDescription = "Filter",
-                            tint = if (uiState.filterDate.isNotEmpty()) {
+                            tint = if (uiState?.filterDate?.isNotEmpty() == true) {
                                 MaterialTheme.colorScheme.primary
                             } else {
                                 MaterialTheme.colorScheme.onSurface
@@ -118,7 +126,7 @@ fun TaskListScreen(
             }
 
             // Filter Status Indicator
-            if (uiState.filterDate.isNotEmpty()) {
+            if (uiState?.filterDate?.isNotEmpty() == true) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -140,7 +148,7 @@ fun TaskListScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Filtered by: ${formatDate(uiState.filterDate)}",
+                            text = "Filtered by: ${formatDate(uiState?.filterDate ?: "")}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -155,7 +163,7 @@ fun TaskListScreen(
             }
 
             when {
-                uiState.isLoading -> {
+                uiState?.isLoading == true -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
@@ -164,20 +172,20 @@ fun TaskListScreen(
                     }
                 }
                 
-                uiState.error != null -> {
+                uiState?.error != null -> {
                     ErrorMessage(
-                        message = uiState.error ?: "Unknown error",
+                        message = uiState?.error ?: "Unknown error",
                         onRetry = { viewModel.loadTasks() }
                     )
                 }
                 
-                uiState.tasks.isEmpty() -> {
+                uiState?.tasks?.isEmpty() == true -> {
                     EmptyState()
                 }
                 
                 else -> {
                     TaskList(
-                        tasks = uiState.tasks,
+                        tasks = uiState?.tasks ?: emptyList(),
                         onTaskClick = onNavigateToEditTask,
                         onTaskLongPress = onNavigateToEditTask,
                         onTaskDelete = { task ->

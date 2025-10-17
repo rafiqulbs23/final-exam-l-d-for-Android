@@ -12,7 +12,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import dev.rafiqulislam.core.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.AddEditTaskViewModel
 import java.time.LocalDate
@@ -25,11 +26,18 @@ fun AddEditTaskScreen(
     taskId: Long? = null,
     onNavigateBack: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var uiState by remember { mutableStateOf(viewModel.uiState.value) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var dueDate by remember { mutableStateOf("") }
     var showDatePicker by remember { mutableStateOf(false) }
+
+    // Observe LiveData changes
+    LaunchedEffect(Unit) {
+        viewModel.uiState.observeForever { newState ->
+            uiState = newState
+        }
+    }
 
     // Load task data if editing
     LaunchedEffect(taskId) {
@@ -39,8 +47,8 @@ fun AddEditTaskScreen(
     }
 
     // Update fields when task is loaded
-    LaunchedEffect(uiState.task) {
-        uiState.task?.let { task ->
+    LaunchedEffect(uiState?.task) {
+        uiState?.task?.let { task ->
             title = task.title
             description = task.description ?: ""
             dueDate = task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
@@ -48,8 +56,8 @@ fun AddEditTaskScreen(
     }
 
     // Handle navigation back on success
-    LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
+    LaunchedEffect(uiState?.isSuccess) {
+        if (uiState?.isSuccess == true) {
             onNavigateBack()
         }
     }
@@ -81,8 +89,8 @@ fun AddEditTaskScreen(
                     viewModel.validateTitle(it)
                 },
                 label = { Text("Title *") },
-                isError = uiState.titleError != null,
-                supportingText = uiState.titleError?.let { { Text(it) } },
+                isError = uiState?.titleError != null,
+                supportingText = uiState?.titleError?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -95,8 +103,8 @@ fun AddEditTaskScreen(
                     viewModel.validateDescription(it)
                 },
                 label = { Text("Description") },
-                isError = uiState.descriptionError != null,
-                supportingText = uiState.descriptionError?.let { { Text(it) } },
+                isError = uiState?.descriptionError != null,
+                supportingText = uiState?.descriptionError?.let { { Text(it) } },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 5
@@ -110,8 +118,8 @@ fun AddEditTaskScreen(
                 },
                 label = { Text("Due Date *") },
                 placeholder = { Text("Tap to select date (yyyy-MM-dd)") },
-                isError = uiState.dueDateError != null,
-                supportingText = uiState.dueDateError?.let { { Text(it) } },
+                isError = uiState?.dueDateError != null,
+                supportingText = uiState?.dueDateError?.let { { Text(it) } },
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { 
@@ -141,10 +149,10 @@ fun AddEditTaskScreen(
                         viewModel.createTask(title, description, dueDate)
                     }
                 },
-                enabled = uiState.isFormValid && !uiState.isLoading,
+                enabled = (uiState?.isFormValid == true) && (uiState?.isLoading != true),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (uiState.isLoading) {
+                if (uiState?.isLoading == true) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp

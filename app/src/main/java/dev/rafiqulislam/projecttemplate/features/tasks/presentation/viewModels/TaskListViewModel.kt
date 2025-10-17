@@ -12,9 +12,8 @@ import dev.rafiqulislam.core.domain.usecase.DeleteTaskUseCase
 import dev.rafiqulislam.core.domain.usecase.GetAllTasksUseCase
 import dev.rafiqulislam.core.domain.usecase.SearchTasksByDueDateUseCase
 import dev.rafiqulislam.core.domain.usecase.SearchTasksByTitleUseCase
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.LiveData
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -29,8 +28,8 @@ class TaskListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(TaskListUiState())
-    val uiState: StateFlow<TaskListUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableLiveData(TaskListUiState())
+    val uiState: LiveData<TaskListUiState> = _uiState
 
     // Save search and filter state
     private var savedSearchQuery: String
@@ -43,7 +42,7 @@ class TaskListViewModel @Inject constructor(
 
     init {
         // Restore search and filter state
-        _uiState.value = _uiState.value.copy(
+        _uiState.value = _uiState.value?.copy(
             searchQuery = savedSearchQuery,
             filterDate = savedFilterDate
         )
@@ -51,21 +50,21 @@ class TaskListViewModel @Inject constructor(
 
     fun loadTasks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
 
             when (val result = getAllTasksUseCase()) {
                 is Result.Success -> {
                     val sortedTasks = result.data.sortedBy { task ->
                         task.dueDate
                     }
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = _uiState.value?.copy(
                         isLoading = false,
                         tasks = sortedTasks,
                         error = null
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = _uiState.value?.copy(
                         isLoading = false,
                         error = result.exception.message
                     )
@@ -76,7 +75,7 @@ class TaskListViewModel @Inject constructor(
 
     fun searchTasksByTitle(title: String) {
         savedSearchQuery = title
-        _uiState.value = _uiState.value.copy(searchQuery = title)
+        _uiState.value = _uiState.value?.copy(searchQuery = title)
 
         if (title.isEmpty()) {
             loadTasks()
@@ -84,21 +83,21 @@ class TaskListViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
 
             when (val result = searchTasksByTitleUseCase(title)) {
                 is Result.Success -> {
                     val sortedTasks = result.data.sortedBy { task ->
                         task.dueDate
                     }
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = _uiState.value?.copy(
                         isLoading = false,
                         tasks = sortedTasks,
                         error = null
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = _uiState.value?.copy(
                         isLoading = false,
                         error = result.exception.message
                     )
@@ -110,7 +109,7 @@ class TaskListViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.O)
     fun searchTasksByDueDate(dueDate: String) {
         savedFilterDate = dueDate
-        _uiState.value = _uiState.value.copy(filterDate = dueDate)
+        _uiState.value = _uiState.value?.copy(filterDate = dueDate)
 
         if (dueDate.isEmpty()) {
             loadTasks()
@@ -118,7 +117,7 @@ class TaskListViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
 
             try {
                 val parsedDate = LocalDate.parse(dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
@@ -127,21 +126,21 @@ class TaskListViewModel @Inject constructor(
                         val sortedTasks = result.data.sortedBy { task ->
                             task.dueDate
                         }
-                        _uiState.value = _uiState.value.copy(
+                        _uiState.value = _uiState.value?.copy(
                             isLoading = false,
                             tasks = sortedTasks,
                             error = null
                         )
                     }
                     is Result.Error -> {
-                        _uiState.value = _uiState.value.copy(
+                        _uiState.value = _uiState.value?.copy(
                             isLoading = false,
                             error = result.exception.message
                         )
                     }
                 }
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
+                _uiState.value = _uiState.value?.copy(
                     isLoading = false,
                     error = "Invalid date format"
                 )
@@ -156,7 +155,7 @@ class TaskListViewModel @Inject constructor(
                     loadTasks() // Refresh the list
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
+                    _uiState.value = _uiState.value?.copy(
                         error = result.exception.message
                     )
                 }
@@ -168,7 +167,7 @@ class TaskListViewModel @Inject constructor(
         viewModelScope.launch {
             // For now, we'll implement this by deleting tasks one by one
             // In a real app, you might want to add a deleteAllTasks use case
-            val tasks = _uiState.value.tasks
+            val tasks = _uiState.value?.tasks ?: emptyList()
             for (task in tasks) {
                 task.id?.let { deleteTask(it) }
             }
