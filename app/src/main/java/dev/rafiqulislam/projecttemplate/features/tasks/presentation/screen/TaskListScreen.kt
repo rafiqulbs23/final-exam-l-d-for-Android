@@ -598,6 +598,7 @@ fun FilterDialog(
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(max = 500.dp) // Limit height for landscape
                 .wrapContentHeight()
                 .padding(vertical = 24.dp, horizontal = 4.dp),
             shape = RoundedCornerShape(20.dp),
@@ -632,6 +633,7 @@ fun FilterDialog(
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                         .padding(8.dp)
+                        .heightIn(max = 350.dp) // Limit height for landscape
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))

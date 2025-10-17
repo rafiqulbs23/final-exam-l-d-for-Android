@@ -286,11 +286,16 @@ fun AddEditTaskScreen(
         AlertDialog(
             onDismissRequest = { showDatePicker = false },
             title = { Text("Select Due Date") },
-            properties = DialogProperties(usePlatformDefaultWidth = false),
+            properties = DialogProperties(
+                usePlatformDefaultWidth = false,
+                decorFitsSystemWindows = false
+            ),
             text = {
                 DatePicker(
                     state = datePickerState,
-                    modifier = Modifier.wrapContentSize()
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .heightIn(max = 400.dp) // Limit height for landscape
                 )
             },
             confirmButton = {
