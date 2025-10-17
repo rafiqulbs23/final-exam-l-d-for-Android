@@ -89,6 +89,11 @@ fun TaskListScreen(
         uiState?.let { newState ->
             searchQuery = newState.searchQuery
             filterDate = newState.filterDate
+            
+            // Hide search bar when filters are cleared (when returning from edit/create)
+            if (newState.searchQuery.isEmpty() && newState.filterDate.isEmpty()) {
+                showSearchBar = false
+            }
         }
     }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
