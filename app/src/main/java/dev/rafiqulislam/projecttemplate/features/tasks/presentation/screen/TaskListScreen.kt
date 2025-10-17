@@ -26,7 +26,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.rafiqulislam.core.data.model.Task
+import dev.rafiqulislam.core.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -287,9 +287,9 @@ private fun SwipeToDeleteTaskItem(
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Due: ${formatDate(task.dueDate)}",
+                    text = "Due: ${formatDate(task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE))}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = if (isOverdue(task.dueDate)) {
+                    color = if (isOverdue(task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE))) {
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
@@ -331,9 +331,9 @@ private fun TaskItem(
             
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Due: ${formatDate(task.dueDate)}",
+                text = "Due: ${formatDate(task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE))}",
                 style = MaterialTheme.typography.bodySmall,
-                color = if (isOverdue(task.dueDate)) {
+                color = if (isOverdue(task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE))) {
                     MaterialTheme.colorScheme.error
                 } else {
                     MaterialTheme.colorScheme.onSurfaceVariant

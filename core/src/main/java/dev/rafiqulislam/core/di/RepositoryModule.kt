@@ -1,9 +1,9 @@
 package dev.rafiqulislam.core.di
 
-import dev.rafiqulislam.core.data.repository.TaskRepository
-import dev.rafiqulislam.core.data.repository.TokenRepository
 import dev.rafiqulislam.core.data.repositoryImpl.TaskRepositoryImpl
+import dev.rafiqulislam.core.data.repository.TokenRepository
 import dev.rafiqulislam.core.data.repositoryImpl.TokenRepositoryImpl
+import dev.rafiqulislam.core.domain.repository.TaskRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

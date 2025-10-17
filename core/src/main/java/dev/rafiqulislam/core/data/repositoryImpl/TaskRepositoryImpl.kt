@@ -1,120 +1,80 @@
 package dev.rafiqulislam.core.data.repositoryImpl
 
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.data.model.Task
-import dev.rafiqulislam.core.data.model.TaskRequest
-import dev.rafiqulislam.core.data.repository.TaskRepository
+import dev.rafiqulislam.core.data.model.TaskRequestDto
+import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.core.domain.repository.TaskRepository
 import dev.rafiqulislam.core.network.TaskApiService
-import dev.rafiqulislam.core.network.exception.NetworkException
+import java.time.LocalDate
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
 class TaskRepositoryImpl @Inject constructor(
-    private val taskApiService: TaskApiService
+    private val apiService: TaskApiService
 ) : TaskRepository {
 
     override suspend fun getAllTasks(): Result<List<Task>> {
         return try {
-            val response = taskApiService.getAllTasks()
-            if (response.isSuccessful) {
-                val taskList = response.body()?.data ?: emptyList()
-                Result.Success(taskList)
-            } else {
-                Result.Error(NetworkException("Failed to fetch tasks: ${response.message()}"))
-            }
+            val tasks = apiService.getAllTasks().map { it.toDomain() }
+            Result.Success(tasks)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
-    override suspend fun createTask(taskRequest: TaskRequest): Result<Task> {
+    override suspend fun createTask(title: String, description: String?, dueDate: LocalDate): Result<Task> {
         return try {
-            val response = taskApiService.createTask(taskRequest)
-            if (response.isSuccessful) {
-                val task = response.body()?.data
-                if (task != null) {
-                    Result.Success(task)
-                } else {
-                    Result.Error(NetworkException("Task creation failed: No data returned"))
-                }
-            } else {
-                Result.Error(NetworkException("Failed to create task: ${response.message()}"))
-            }
+            val request = TaskRequestDto.fromDomain(title, description, dueDate)
+            val task = apiService.createTask(request).toDomain()
+            Result.Success(task)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
-    override suspend fun updateTask(id: Long, taskRequest: TaskRequest): Result<Task> {
+    override suspend fun updateTask(id: Long, title: String, description: String?, dueDate: LocalDate): Result<Task> {
         return try {
-            val response = taskApiService.updateTask(id, taskRequest)
-            if (response.isSuccessful) {
-                val task = response.body()?.data
-                if (task != null) {
-                    Result.Success(task)
-                } else {
-                    Result.Error(NetworkException("Task update failed: No data returned"))
-                }
-            } else {
-                Result.Error(NetworkException("Failed to update task: ${response.message()}"))
-            }
+            val request = TaskRequestDto.fromDomain(title, description, dueDate)
+            val task = apiService.updateTask(id, request).toDomain()
+            Result.Success(task)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
     override suspend fun deleteTask(id: Long): Result<Unit> {
         return try {
-            val response = taskApiService.deleteTask(id)
-            if (response.isSuccessful) {
-                Result.Success(Unit)
-            } else {
-                Result.Error(NetworkException("Failed to delete task: ${response.message()}"))
-            }
+            apiService.deleteTask(id)
+            Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
     override suspend fun deleteAllTasks(): Result<Unit> {
         return try {
-            val response = taskApiService.deleteAllTasks()
-            if (response.isSuccessful) {
-                Result.Success(Unit)
-            } else {
-                Result.Error(NetworkException("Failed to delete all tasks: ${response.message()}"))
-            }
+            apiService.deleteAllTasks()
+            Result.Success(Unit)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
     override suspend fun searchTasksByTitle(title: String): Result<List<Task>> {
         return try {
-            val response = taskApiService.searchTasksByTitle(title)
-            if (response.isSuccessful) {
-                val taskList = response.body()?.data ?: emptyList()
-                Result.Success(taskList)
-            } else {
-                Result.Error(NetworkException("Failed to search tasks by title: ${response.message()}"))
-            }
+            val tasks = apiService.searchTasksByTitle(title).map { it.toDomain() }
+            Result.Success(tasks)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 
-    override suspend fun searchTasksByDueDate(dueDate: String): Result<List<Task>> {
+    override suspend fun searchTasksByDueDate(dueDate: LocalDate): Result<List<Task>> {
         return try {
-            val response = taskApiService.searchTasksByDueDate(dueDate)
-            if (response.isSuccessful) {
-                val taskList = response.body()?.data ?: emptyList()
-                Result.Success(taskList)
-            } else {
-                Result.Error(NetworkException("Failed to search tasks by due date: ${response.message()}"))
-            }
+            val dateString = dueDate.format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)
+            val tasks = apiService.searchTasksByDueDate(dateString).map { it.toDomain() }
+            Result.Success(tasks)
         } catch (e: Exception) {
-            Result.Error(NetworkException("Network error: ${e.message}"))
+            Result.Error(e)
         }
     }
 }

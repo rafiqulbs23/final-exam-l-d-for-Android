@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import dev.rafiqulislam.core.data.model.Task
+import dev.rafiqulislam.core.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.AddEditTaskViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -42,7 +42,7 @@ fun AddEditTaskScreen(
         uiState.task?.let { task ->
             title = task.title
             description = task.description ?: ""
-            dueDate = task.dueDate
+            dueDate = task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
         }
     }
 

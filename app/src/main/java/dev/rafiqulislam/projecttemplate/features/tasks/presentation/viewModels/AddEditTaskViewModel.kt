@@ -5,9 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.data.model.Task
-import dev.rafiqulislam.core.data.model.TaskRequest
-import dev.rafiqulislam.core.data.repository.TaskRepository
+import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.core.domain.usecase.CreateTaskUseCase
+import dev.rafiqulislam.core.domain.usecase.GetAllTasksUseCase
+import dev.rafiqulislam.core.domain.usecase.UpdateTaskUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,7 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddEditTaskViewModel @Inject constructor(
-    private val taskRepository: TaskRepository,
+    private val getAllTasksUseCase: GetAllTasksUseCase,
+    private val createTaskUseCase: CreateTaskUseCase,
+    private val updateTaskUseCase: UpdateTaskUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -51,7 +54,7 @@ class AddEditTaskViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            when (val result = taskRepository.getAllTasks()) {
+            when (val result = getAllTasksUseCase()) {
                 is Result.Success -> {
                     val task = result.data.find { it.id == taskId }
                     if (task != null) {
@@ -60,13 +63,13 @@ class AddEditTaskViewModel @Inject constructor(
                             task = task,
                             title = task.title,
                             description = task.description ?: "",
-                            dueDate = task.dueDate,
+                            dueDate = task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE),
                             error = null
                         )
                         // Save to SavedStateHandle
                         savedTitle = task.title
                         savedDescription = task.description ?: ""
-                        savedDueDate = task.dueDate
+                        savedDueDate = task.dueDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
                     } else {
                         _uiState.value = _uiState.value.copy(
                             isLoading = false,
@@ -155,26 +158,32 @@ class AddEditTaskViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            val taskRequest = TaskRequest(
-                title = title,
-                description = if (description.isEmpty()) null else description,
-                dueDate = dueDate
-            )
-            
-            when (val result = taskRepository.createTask(taskRequest)) {
-                is Result.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isSuccess = true,
-                        error = null
-                    )
+            try {
+                val parsedDate = LocalDate.parse(dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                when (val result = createTaskUseCase(
+                    title = title,
+                    description = if (description.isEmpty()) null else description,
+                    dueDate = parsedDate
+                )) {
+                    is Result.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            error = null
+                        )
+                    }
+                    is Result.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = result.exception.message
+                        )
+                    }
                 }
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.exception.message
-                    )
-                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Invalid date format"
+                )
             }
         }
     }
@@ -183,26 +192,33 @@ class AddEditTaskViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
-            val taskRequest = TaskRequest(
-                title = title,
-                description = if (description.isEmpty()) null else description,
-                dueDate = dueDate
-            )
-            
-            when (val result = taskRepository.updateTask(taskId, taskRequest)) {
-                is Result.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        isSuccess = true,
-                        error = null
-                    )
+            try {
+                val parsedDate = LocalDate.parse(dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                when (val result = updateTaskUseCase(
+                    id = taskId,
+                    title = title,
+                    description = if (description.isEmpty()) null else description,
+                    dueDate = parsedDate
+                )) {
+                    is Result.Success -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            error = null
+                        )
+                    }
+                    is Result.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = result.exception.message
+                        )
+                    }
                 }
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.exception.message
-                    )
-                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Invalid date format"
+                )
             }
         }
     }

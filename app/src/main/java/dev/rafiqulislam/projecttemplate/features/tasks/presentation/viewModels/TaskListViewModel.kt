@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.data.model.Task
-import dev.rafiqulislam.core.data.repository.TaskRepository
+import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.core.domain.usecase.DeleteTaskUseCase
+import dev.rafiqulislam.core.domain.usecase.GetAllTasksUseCase
+import dev.rafiqulislam.core.domain.usecase.SearchTasksByDueDateUseCase
+import dev.rafiqulislam.core.domain.usecase.SearchTasksByTitleUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +20,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaskListViewModel @Inject constructor(
-    private val taskRepository: TaskRepository,
+    private val getAllTasksUseCase: GetAllTasksUseCase,
+    private val searchTasksByTitleUseCase: SearchTasksByTitleUseCase,
+    private val searchTasksByDueDateUseCase: SearchTasksByDueDateUseCase,
+    private val deleteTaskUseCase: DeleteTaskUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -44,15 +50,11 @@ class TaskListViewModel @Inject constructor(
     fun loadTasks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
-            when (val result = taskRepository.getAllTasks()) {
+
+            when (val result = getAllTasksUseCase()) {
                 is Result.Success -> {
                     val sortedTasks = result.data.sortedBy { task ->
-                        try {
-                            LocalDate.parse(task.dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                        } catch (e: Exception) {
-                            LocalDate.MAX
-                        }
+                        task.dueDate
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -73,23 +75,19 @@ class TaskListViewModel @Inject constructor(
     fun searchTasksByTitle(title: String) {
         savedSearchQuery = title
         _uiState.value = _uiState.value.copy(searchQuery = title)
-        
+
         if (title.isEmpty()) {
             loadTasks()
             return
         }
-        
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
-            when (val result = taskRepository.searchTasksByTitle(title)) {
+
+            when (val result = searchTasksByTitleUseCase(title)) {
                 is Result.Success -> {
                     val sortedTasks = result.data.sortedBy { task ->
-                        try {
-                            LocalDate.parse(task.dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                        } catch (e: Exception) {
-                            LocalDate.MAX
-                        }
+                        task.dueDate
                     }
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
@@ -110,38 +108,47 @@ class TaskListViewModel @Inject constructor(
     fun searchTasksByDueDate(dueDate: String) {
         savedFilterDate = dueDate
         _uiState.value = _uiState.value.copy(filterDate = dueDate)
-        
+
+        if (dueDate.isEmpty()) {
+            loadTasks()
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
-            
-            when (val result = taskRepository.searchTasksByDueDate(dueDate)) {
-                is Result.Success -> {
-                    val sortedTasks = result.data.sortedBy { task ->
-                        try {
-                            LocalDate.parse(task.dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                        } catch (e: Exception) {
-                            LocalDate.MAX
+
+            try {
+                val parsedDate = LocalDate.parse(dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                when (val result = searchTasksByDueDateUseCase(parsedDate)) {
+                    is Result.Success -> {
+                        val sortedTasks = result.data.sortedBy { task ->
+                            task.dueDate
                         }
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            tasks = sortedTasks,
+                            error = null
+                        )
                     }
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        tasks = sortedTasks,
-                        error = null
-                    )
+                    is Result.Error -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            error = result.exception.message
+                        )
+                    }
                 }
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        error = result.exception.message
-                    )
-                }
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    error = "Invalid date format"
+                )
             }
         }
     }
 
     fun deleteTask(taskId: Long) {
         viewModelScope.launch {
-            when (val result = taskRepository.deleteTask(taskId)) {
+            when (val result = deleteTaskUseCase(taskId)) {
                 is Result.Success -> {
                     loadTasks() // Refresh the list
                 }
@@ -156,15 +163,11 @@ class TaskListViewModel @Inject constructor(
 
     fun deleteAllTasks() {
         viewModelScope.launch {
-            when (val result = taskRepository.deleteAllTasks()) {
-                is Result.Success -> {
-                    loadTasks() // Refresh the list
-                }
-                is Result.Error -> {
-                    _uiState.value = _uiState.value.copy(
-                        error = result.exception.message
-                    )
-                }
+            // For now, we'll implement this by deleting tasks one by one
+            // In a real app, you might want to add a deleteAllTasks use case
+            val tasks = _uiState.value.tasks
+            for (task in tasks) {
+                task.id?.let { deleteTask(it) }
             }
         }
     }
