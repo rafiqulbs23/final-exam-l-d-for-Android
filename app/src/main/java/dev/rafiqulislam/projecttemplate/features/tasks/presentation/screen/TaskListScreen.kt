@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,7 +61,8 @@ fun TaskListScreen(
     onNavigateToAddTask: () -> Unit,
     onNavigateToEditTask: (Long) -> Unit
 ) {
-    var uiState by remember { mutableStateOf(viewModel.uiState.value) }
+    // Observe ViewModel state using observeAsState
+    val uiState by viewModel.uiState.observeAsState()
     var searchQuery by remember { mutableStateOf(uiState?.searchQuery ?: "") }
     var showSearchBar by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
@@ -82,13 +84,11 @@ fun TaskListScreen(
         }
     }
 
-    // Observe LiveData changes
-    LaunchedEffect(Unit) {
-        viewModel.uiState.observeForever { newState ->
-            uiState = newState
-            // Update local state when ViewModel state changes
-            searchQuery = newState?.searchQuery ?: ""
-            filterDate = newState?.filterDate ?: ""
+    // Update local state when ViewModel state changes
+    LaunchedEffect(uiState) {
+        uiState?.let { newState ->
+            searchQuery = newState.searchQuery
+            filterDate = newState.filterDate
         }
     }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
