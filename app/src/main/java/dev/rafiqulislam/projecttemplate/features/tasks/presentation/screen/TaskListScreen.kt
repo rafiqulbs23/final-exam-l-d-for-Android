@@ -86,6 +86,9 @@ fun TaskListScreen(
     LaunchedEffect(Unit) {
         viewModel.uiState.observeForever { newState ->
             uiState = newState
+            // Update local state when ViewModel state changes
+            searchQuery = newState?.searchQuery ?: ""
+            filterDate = newState?.filterDate ?: ""
         }
     }
     var deletedTask by remember { mutableStateOf<Task?>(null) }
@@ -93,12 +96,6 @@ fun TaskListScreen(
 
     LaunchedEffect(Unit) {
         viewModel.loadTasks()
-    }
-
-    // Sync local state with ViewModel state
-    LaunchedEffect(uiState?.searchQuery, uiState?.filterDate) {
-        searchQuery = uiState?.searchQuery ?: ""
-        filterDate = uiState?.filterDate ?: ""
     }
 
     // Debounced search effect
@@ -177,8 +174,15 @@ fun TaskListScreen(
             if (showSearchBar) {
                 SearchBar(
                     query = searchQuery,
-                    onQueryChange = { searchQuery = it },
-                    onSearch = { searchQuery = it },
+                    onQueryChange = { 
+                        searchQuery = it
+                        // Update ViewModel state when user types
+                        viewModel.searchTasksByTitle(it)
+                    },
+                    onSearch = { 
+                        searchQuery = it
+                        viewModel.searchTasksByTitle(it)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -267,10 +271,14 @@ fun TaskListScreen(
             onDismiss = { showFilterDialog = false },
             onApplyFilter = { date ->
                 filterDate = date
+                // Update ViewModel state when filter is applied
+                viewModel.searchTasksByDueDate(date)
                 showFilterDialog = false
             },
             onClearFilter = {
                 filterDate = ""
+                // Update ViewModel state when filter is cleared
+                viewModel.clearFilter()
                 showFilterDialog = false
             }
         )
