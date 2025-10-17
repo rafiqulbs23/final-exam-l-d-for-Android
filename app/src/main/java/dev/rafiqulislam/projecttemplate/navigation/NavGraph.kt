@@ -52,9 +52,12 @@ fun AppNavGraph(
 
             composable<AddTaskScreenNav> { backStackEntry ->
                 val viewModel: AddEditTaskViewModel = hiltViewModel()
+                val taskListViewModel: TaskListViewModel = hiltViewModel()
                 AddEditTaskScreen(
                     viewModel = viewModel,
                     onNavigateBack = {
+                        // Clear filters and load all tasks when navigating back
+                        taskListViewModel.clearAllFiltersAndLoadTasks()
                         navController.popBackStack()
                     }
                 )
@@ -63,10 +66,13 @@ fun AppNavGraph(
             composable<EditTaskScreenNav> { backStackEntry ->
                 val taskId = backStackEntry.toRoute<EditTaskScreenNav>().taskId
                 val viewModel: AddEditTaskViewModel = hiltViewModel()
+                val taskListViewModel: TaskListViewModel = hiltViewModel()
                 AddEditTaskScreen(
                     viewModel = viewModel,
                     taskId = taskId,
                     onNavigateBack = {
+                        // Clear filters and load all tasks when navigating back
+                        taskListViewModel.clearAllFiltersAndLoadTasks()
                         navController.popBackStack()
                     }
                 )

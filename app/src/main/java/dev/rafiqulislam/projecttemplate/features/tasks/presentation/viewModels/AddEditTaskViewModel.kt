@@ -1,5 +1,7 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +17,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-
+@RequiresApi(Build.VERSION_CODES.O)
 @HiltViewModel
 class AddEditTaskViewModel @Inject constructor(
     private val getAllTasksUseCase: GetAllTasksUseCase,
@@ -116,6 +118,7 @@ class AddEditTaskViewModel @Inject constructor(
         )
     }
 
+
     fun validateDueDate(dueDate: String) {
         savedDueDate = dueDate
         _uiState.value = _uiState.value?.copy(dueDate = dueDate)
@@ -140,6 +143,7 @@ class AddEditTaskViewModel @Inject constructor(
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun isFormValid(title: String, description: String, dueDate: String): Boolean {
         val titleValid = title.isNotEmpty() && title.length <= 50
         val descriptionValid = description.length <= 200
@@ -153,6 +157,7 @@ class AddEditTaskViewModel @Inject constructor(
         return titleValid && descriptionValid && dueDateValid
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun createTask(title: String, description: String, dueDate: String) {
         viewModelScope.launch {
             _uiState.value = _uiState.value?.copy(isLoading = true, error = null)

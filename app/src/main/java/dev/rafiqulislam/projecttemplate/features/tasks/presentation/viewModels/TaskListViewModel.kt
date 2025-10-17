@@ -205,6 +205,19 @@ class TaskListViewModel @Inject constructor(
     fun clearFilter() {
         searchTasksByDueDate("")
     }
+
+    fun clearAllFiltersAndLoadTasks() {
+        // Clear search query
+        savedSearchQuery = ""
+        _uiState.value = _uiState.value?.copy(searchQuery = "")
+        
+        // Clear filter date
+        savedFilterDate = ""
+        _uiState.value = _uiState.value?.copy(filterDate = "")
+        
+        // Load all tasks
+        loadTasks()
+    }
 }
 
 data class TaskListUiState(
