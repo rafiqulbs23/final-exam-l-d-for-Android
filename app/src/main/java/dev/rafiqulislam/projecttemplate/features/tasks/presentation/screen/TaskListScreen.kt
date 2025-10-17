@@ -538,12 +538,13 @@ private fun FilterDialog(
         ) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
+                    .width(360.dp)
+                    .wrapContentHeight()
+                    .padding(8.dp),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp)
+                    modifier = Modifier.padding(16.dp)
                 ) {
                     Text(
                         text = "Select Filter Date",
@@ -554,8 +555,8 @@ private fun FilterDialog(
                     DatePicker(
                         state = datePickerState,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
+                            .width(328.dp)
+                            .height(400.dp)
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
