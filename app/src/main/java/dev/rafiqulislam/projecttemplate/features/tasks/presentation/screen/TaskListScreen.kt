@@ -1,15 +1,25 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,6 +39,8 @@ fun TaskListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var searchQuery by remember { mutableStateOf("") }
     var showSearchBar by remember { mutableStateOf(false) }
+    var deletedTask by remember { mutableStateOf<Task?>(null) }
+    var showUndoSnackbar by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.loadTasks()
@@ -58,6 +70,26 @@ fun TaskListScreen(
                 onClick = onNavigateToAddTask
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
+            }
+        },
+        snackbarHost = {
+            SnackbarHost(it) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    action = {
+                        TextButton(
+                            onClick = {
+                                deletedTask?.let { task ->
+                                    // Restore the task (you would need to implement this in the repository)
+                                    showUndoSnackbar = false
+                                    deletedTask = null
+                                }
+                            }
+                        ) {
+                            Text("UNDO")
+                        }
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -102,8 +134,10 @@ fun TaskListScreen(
                     TaskList(
                         tasks = uiState.tasks,
                         onTaskClick = onNavigateToEditTask,
-                        onTaskDelete = { taskId ->
-                            viewModel.deleteTask(taskId)
+                        onTaskDelete = { task ->
+                            deletedTask = task
+                            showUndoSnackbar = true
+                            viewModel.deleteTask(task.id ?: 0L)
                         }
                     )
                 }
@@ -132,7 +166,7 @@ private fun SearchBar(
 private fun TaskList(
     tasks: List<Task>,
     onTaskClick: (Long) -> Unit,
-    onTaskDelete: (Long) -> Unit
+    onTaskDelete: (Task) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -140,11 +174,104 @@ private fun TaskList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(tasks) { task ->
-            TaskItem(
+            SwipeToDeleteTaskItem(
                 task = task,
                 onClick = { onTaskClick(task.id ?: 0L) },
-                onDelete = { onTaskDelete(task.id ?: 0L) }
+                onDelete = { onTaskDelete(task) }
             )
+        }
+    }
+}
+
+@Composable
+private fun SwipeToDeleteTaskItem(
+    task: Task,
+    onClick: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var offsetX by remember { mutableStateOf(0f) }
+    val maxOffset = -200f
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+    ) {
+        // Delete background
+        AnimatedVisibility(
+            visible = offsetX < -50f,
+            enter = slideInHorizontally(
+                initialOffsetX = { it },
+                animationSpec = tween(300)
+            ),
+            exit = slideOutHorizontally(
+                targetOffsetX = { it },
+                animationSpec = tween(300)
+            )
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.error)
+                    .padding(16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete",
+                    tint = MaterialTheme.colorScheme.onError
+                )
+            }
+        }
+
+        // Task content
+        Card(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(x = offsetX.dp)
+                .pointerInput(Unit) {
+                    detectDragGestures(
+                        onDragEnd = {
+                            if (offsetX < maxOffset / 2) {
+                                onDelete()
+                            }
+                            offsetX = 0f
+                        }
+                    ) { _, dragAmount ->
+                        offsetX = (offsetX + dragAmount.x).coerceIn(maxOffset, 0f)
+                    }
+                }
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = task.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                if (!task.description.isNullOrEmpty()) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = task.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Due: ${formatDate(task.dueDate)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isOverdue(task.dueDate)) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+            }
         }
     }
 }
