@@ -1,5 +1,7 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen
 
+import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -14,13 +16,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.window.DialogProperties
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.AddEditTaskViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditTaskScreen(
@@ -257,6 +262,7 @@ fun AddEditTaskScreen(
             initialSelectedDateMillis = if (dueDate.isNotEmpty()) {
                 try {
                     LocalDate.parse(dueDate, DateTimeFormatter.ISO_LOCAL_DATE)
+                        .plusDays(1)
                         .atStartOfDay()
                         .atZone(java.time.ZoneId.systemDefault())
                         .toInstant()
@@ -268,10 +274,10 @@ fun AddEditTaskScreen(
                 System.currentTimeMillis()
             }
         )
-
         AlertDialog(
             onDismissRequest = { showDatePicker = false },
             title = { Text("Select Due Date") },
+            properties = DialogProperties(usePlatformDefaultWidth = false),
             text = {
                 DatePicker(
                     state = datePickerState,

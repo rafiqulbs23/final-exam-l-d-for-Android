@@ -1,5 +1,6 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen
 
+import android.app.DatePickerDialog
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
@@ -16,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.FilterList
@@ -34,15 +36,19 @@ import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
+import java.util.Calendar
+import java.util.Locale
 import kotlin.math.roundToInt
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -563,49 +569,59 @@ private fun isOverdue(dateString: String): Boolean {
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterDialog(
+fun FilterDialog(
     onDismiss: () -> Unit,
     onApplyFilter: (String) -> Unit,
-    onClearFilter: () -> Unit
+    onClearFilter: () -> Unit,
+    initialDateMillis: Long? = System.currentTimeMillis()
 ) {
-    var selectedDate by remember { mutableStateOf<Long?>(null) }
-    val datePickerState = rememberDatePickerState(
-        initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
-    )
+    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
     Dialog(onDismissRequest = onDismiss) {
-        Card(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .wrapContentHeight()
+                .padding(24.dp),
+            shape = RoundedCornerShape(20.dp),
+            tonalElevation = 8.dp,
+            color = MaterialTheme.colorScheme.surface
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                // Title
                 Text(
                     text = "Filter by Due Date",
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
-                
+
+                // Subtitle
                 Text(
-                    text = "Select a date to filter tasks:",
+                    text = "Select a date to filter your tasks:",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 20.dp)
                 )
 
+                // Date Picker
                 DatePicker(
                     state = datePickerState,
-                    modifier = Modifier.wrapContentSize()
+                    showModeToggle = false, // optional cleaner look
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
 
+                // Buttons Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -614,32 +630,35 @@ private fun FilterDialog(
                         onClick = onClearFilter,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Clear Filter")
+                        Text("Clear", color = MaterialTheme.colorScheme.primary)
                     }
-                    
-                    TextButton(
+
+                    OutlinedButton(
                         onClick = onDismiss,
                         modifier = Modifier.weight(1f)
                     ) {
                         Text("Cancel")
                     }
-                    
+
                     Button(
                         onClick = {
                             datePickerState.selectedDateMillis?.let { millis ->
                                 val selectedDate = Instant.ofEpochMilli(millis)
                                     .atZone(ZoneId.systemDefault())
                                     .toLocalDate()
-                                onApplyFilter(selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                                    .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                                onApplyFilter(selectedDate)
                             }
                         },
                         enabled = datePickerState.selectedDateMillis != null,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("Apply Filter")
+                        Text("Apply")
                     }
                 }
             }
         }
     }
 }
+
+
