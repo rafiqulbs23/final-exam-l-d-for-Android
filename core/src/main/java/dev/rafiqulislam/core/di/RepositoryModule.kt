@@ -1,6 +1,8 @@
 package dev.rafiqulislam.core.di
 
+import dev.rafiqulislam.core.data.repository.TaskRepository
 import dev.rafiqulislam.core.data.repository.TokenRepository
+import dev.rafiqulislam.core.data.repositoryImpl.TaskRepositoryImpl
 import dev.rafiqulislam.core.data.repositoryImpl.TokenRepositoryImpl
 import dagger.Binds
 import dagger.Module
@@ -14,4 +16,9 @@ abstract class RepositoryModule {
     abstract fun bindTokenRepository(
         tokenRepositoryImpl: TokenRepositoryImpl
     ): TokenRepository
+
+    @Binds
+    abstract fun bindTaskRepository(
+        taskRepositoryImpl: TaskRepositoryImpl
+    ): TaskRepository
 }

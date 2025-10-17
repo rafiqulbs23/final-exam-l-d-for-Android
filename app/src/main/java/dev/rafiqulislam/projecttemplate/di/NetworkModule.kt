@@ -4,6 +4,7 @@ package dev.rafiqulislam.projecttemplate.di
 
 import android.content.Context
 import dev.rafiqulislam.core.network.NetworkFactory
+import dev.rafiqulislam.core.network.TaskApiService
 import com.incepta.msfa.shared.data.remote.AppApiService
 import dagger.Module
 import dagger.Provides
@@ -42,6 +43,21 @@ object NetworkModule {
         return NetworkFactory.createService(
             context = context,
             serviceClass = AppApiService::class.java,
+        )
+    }
+
+    /**
+     * Provides an instance of [TaskApiService] using the provided [Retrofit] instance.
+     *
+     * @param context The application context.
+     * @return An instance of [TaskApiService].
+     */
+    @Provides
+    @Singleton
+    fun provideTaskApiService(@ApplicationContext context: Context): TaskApiService {
+        return NetworkFactory.createService(
+            context = context,
+            serviceClass = TaskApiService::class.java,
         )
     }
 
