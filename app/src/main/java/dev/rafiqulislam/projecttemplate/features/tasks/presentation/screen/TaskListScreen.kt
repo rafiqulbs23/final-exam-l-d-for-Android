@@ -239,7 +239,10 @@ fun TaskListScreen(
                 uiState?.error != null -> {
                     ErrorMessage(
                         message = uiState?.error ?: "Unknown error",
-                        onRetry = { viewModel.loadTasks() }
+                        onRetry = {
+                            viewModel.clearFilter()
+                            viewModel.loadTasks()
+                        }
                     )
                 }
                 
