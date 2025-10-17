@@ -538,7 +538,7 @@ private fun FilterDialog(
         ) {
             Card(
                 modifier = Modifier
-                    .width(360.dp)
+                    .width(380.dp)
                     .wrapContentHeight()
                     .padding(8.dp),
                 shape = RoundedCornerShape(16.dp)
@@ -552,12 +552,19 @@ private fun FilterDialog(
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     
-                    DatePicker(
-                        state = datePickerState,
+                    // Use a more spacious layout for the date picker
+                    Box(
                         modifier = Modifier
-                            .width(328.dp)
-                            .height(400.dp)
-                    )
+                            .width(340.dp)
+                            .height(420.dp)
+                            .padding(horizontal = 4.dp)
+                    ) {
+                        DatePicker(
+                            state = datePickerState,
+                            modifier = Modifier
+                                .fillMaxSize()
+                        )
+                    }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
