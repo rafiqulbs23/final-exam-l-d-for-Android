@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -105,17 +106,28 @@ fun AddEditTaskScreen(
             OutlinedTextField(
                 value = dueDate,
                 onValueChange = { 
-                    dueDate = it
-                    viewModel.validateDueDate(it)
+                    // Don't allow manual input, only through date picker
                 },
                 label = { Text("Due Date *") },
-                placeholder = { Text("yyyy-MM-dd") },
+                placeholder = { Text("Tap to select date (yyyy-MM-dd)") },
                 isError = uiState.dueDateError != null,
                 supportingText = uiState.dueDateError?.let { { Text(it) } },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { showDatePicker = true },
-                readOnly = true
+                    .clickable { 
+                        showDatePicker = true 
+                    },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { 
+                        showDatePicker = true 
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.DateRange,
+                            contentDescription = "Select Date"
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -162,8 +174,15 @@ fun AddEditTaskScreen(
             }
         )
 
-        DatePickerDialog(
+        AlertDialog(
             onDismissRequest = { showDatePicker = false },
+            title = { Text("Select Due Date") },
+            text = {
+                DatePicker(
+                    state = datePickerState,
+                    modifier = Modifier.wrapContentSize()
+                )
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -185,23 +204,7 @@ fun AddEditTaskScreen(
                     Text("Cancel")
                 }
             }
-        ) {
-            DatePicker(state = datePickerState)
-        }
+        )
     }
 }
 
-@Composable
-private fun DatePickerDialog(
-    onDismissRequest: () -> Unit,
-    confirmButton: @Composable () -> Unit,
-    dismissButton: @Composable (() -> Unit)? = null,
-    content: @Composable () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        confirmButton = confirmButton,
-        dismissButton = dismissButton,
-        text = content
-    )
-}
