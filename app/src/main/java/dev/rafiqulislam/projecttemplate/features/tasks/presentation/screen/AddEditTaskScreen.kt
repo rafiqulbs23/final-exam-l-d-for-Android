@@ -1,5 +1,6 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -111,9 +112,10 @@ fun AddEditTaskScreen(
                 placeholder = { Text("yyyy-MM-dd") },
                 isError = uiState.dueDateError != null,
                 supportingText = uiState.dueDateError?.let { { Text(it) } },
-                modifier = Modifier.fillMaxWidth(),
-                readOnly = true,
-                onClick = { showDatePicker = true }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showDatePicker = true },
+                readOnly = true
             )
 
             Spacer(modifier = Modifier.weight(1f))

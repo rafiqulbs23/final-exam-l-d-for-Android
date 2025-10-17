@@ -7,6 +7,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import dev.rafiqulislam.projecttemplate.features.home.presentation.screen.HomeScreen
 import dev.rafiqulislam.projecttemplate.features.splash.presentation.screen.SplashScreen
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.screen.AddEditTaskScreen

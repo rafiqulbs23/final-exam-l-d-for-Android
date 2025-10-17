@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -90,26 +91,6 @@ fun TaskListScreen(
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Task")
             }
-        },
-        snackbarHost = {
-            SnackbarHost(it) { snackbarData ->
-                Snackbar(
-                    snackbarData = snackbarData,
-                    action = {
-                        TextButton(
-                            onClick = {
-                                deletedTask?.let { task ->
-                                    // Restore the task (you would need to implement this in the repository)
-                                    showUndoSnackbar = false
-                                    deletedTask = null
-                                }
-                            }
-                        ) {
-                            Text("UNDO")
-                        }
-                    }
-                )
-            }
         }
     ) { paddingValues ->
         Column(
@@ -140,7 +121,7 @@ fun TaskListScreen(
                 
                 uiState.error != null -> {
                     ErrorMessage(
-                        message = uiState.error,
+                        message = uiState.error ?: "Unknown error",
                         onRetry = { viewModel.loadTasks() }
                     )
                 }
@@ -298,7 +279,7 @@ private fun SwipeToDeleteTaskItem(
                 if (!task.description.isNullOrEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = task.description,
+                        text = task.description ?: "",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -342,7 +323,7 @@ private fun TaskItem(
             if (!task.description.isNullOrEmpty()) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = task.description,
+                    text = task.description ?: "",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -451,8 +432,9 @@ private fun FilterDialog(
                     label = { Text("Due Date") },
                     placeholder = { Text("yyyy-MM-dd") },
                     readOnly = true,
-                    onClick = { showDatePicker = true },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true }
                 )
             }
         },

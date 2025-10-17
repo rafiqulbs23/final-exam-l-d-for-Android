@@ -1,7 +1,5 @@
 package dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +7,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rafiqulislam.core.base.Result
 import dev.rafiqulislam.core.data.model.Task
 import dev.rafiqulislam.core.data.repository.TaskRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -20,8 +21,8 @@ class TaskListViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val _uiState = MutableLiveData(TaskListUiState())
-    val uiState: LiveData<TaskListUiState> = _uiState
+    private val _uiState = MutableStateFlow(TaskListUiState())
+    val uiState: StateFlow<TaskListUiState> = _uiState.asStateFlow()
 
     // Save search and filter state
     private var savedSearchQuery: String
@@ -34,7 +35,7 @@ class TaskListViewModel @Inject constructor(
 
     init {
         // Restore search and filter state
-        _uiState.value = _uiState.value?.copy(
+        _uiState.value = _uiState.value.copy(
             searchQuery = savedSearchQuery,
             filterDate = savedFilterDate
         )
@@ -42,7 +43,7 @@ class TaskListViewModel @Inject constructor(
 
     fun loadTasks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             when (val result = taskRepository.getAllTasks()) {
                 is Result.Success -> {
@@ -53,14 +54,14 @@ class TaskListViewModel @Inject constructor(
                             LocalDate.MAX
                         }
                     }
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         tasks = sortedTasks,
                         error = null
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = result.exception.message
                     )
@@ -71,7 +72,7 @@ class TaskListViewModel @Inject constructor(
 
     fun searchTasksByTitle(title: String) {
         savedSearchQuery = title
-        _uiState.value = _uiState.value?.copy(searchQuery = title)
+        _uiState.value = _uiState.value.copy(searchQuery = title)
         
         if (title.isEmpty()) {
             loadTasks()
@@ -79,7 +80,7 @@ class TaskListViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             when (val result = taskRepository.searchTasksByTitle(title)) {
                 is Result.Success -> {
@@ -90,14 +91,14 @@ class TaskListViewModel @Inject constructor(
                             LocalDate.MAX
                         }
                     }
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         tasks = sortedTasks,
                         error = null
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = result.exception.message
                     )
@@ -108,10 +109,10 @@ class TaskListViewModel @Inject constructor(
 
     fun searchTasksByDueDate(dueDate: String) {
         savedFilterDate = dueDate
-        _uiState.value = _uiState.value?.copy(filterDate = dueDate)
+        _uiState.value = _uiState.value.copy(filterDate = dueDate)
         
         viewModelScope.launch {
-            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             when (val result = taskRepository.searchTasksByDueDate(dueDate)) {
                 is Result.Success -> {
@@ -122,14 +123,14 @@ class TaskListViewModel @Inject constructor(
                             LocalDate.MAX
                         }
                     }
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         tasks = sortedTasks,
                         error = null
                     )
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         error = result.exception.message
                     )
@@ -145,7 +146,7 @@ class TaskListViewModel @Inject constructor(
                     loadTasks() // Refresh the list
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         error = result.exception.message
                     )
                 }
@@ -160,7 +161,7 @@ class TaskListViewModel @Inject constructor(
                     loadTasks() // Refresh the list
                 }
                 is Result.Error -> {
-                    _uiState.value = _uiState.value?.copy(
+                    _uiState.value = _uiState.value.copy(
                         error = result.exception.message
                     )
                 }

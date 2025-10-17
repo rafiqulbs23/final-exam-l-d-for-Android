@@ -1,4 +1,4 @@
-package com.incepta.core.network.exception
+package dev.rafiqulislam.core.network.exception
 
 import com.incepta.core.network.AppException
 

@@ -1,7 +1,7 @@
 package dev.rafiqulislam.core.base
 
 import com.incepta.core.network.AppException
-import com.incepta.core.network.exception.NetworkExceptionMapper
+import dev.rafiqulislam.core.network.exception.NetworkExceptionMapper
 import retrofit2.HttpException
 import retrofit2.Response
 import java.io.IOException
