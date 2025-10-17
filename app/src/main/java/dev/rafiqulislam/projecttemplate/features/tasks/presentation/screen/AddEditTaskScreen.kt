@@ -90,7 +90,26 @@ fun AddEditTaskScreen(
                 },
                 label = { Text("Title *") },
                 isError = uiState?.titleError != null,
-                supportingText = uiState?.titleError?.let { { Text(it) } },
+                supportingText = {
+                    Column {
+                        uiState?.titleError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Text(
+                            text = "${title.length}/50",
+                            color = if (title.length > 50) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
@@ -104,7 +123,26 @@ fun AddEditTaskScreen(
                 },
                 label = { Text("Description") },
                 isError = uiState?.descriptionError != null,
-                supportingText = uiState?.descriptionError?.let { { Text(it) } },
+                supportingText = {
+                    Column {
+                        uiState?.descriptionError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Text(
+                            text = "${description.length}/200",
+                            color = if (description.length > 200) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3,
                 maxLines = 5
