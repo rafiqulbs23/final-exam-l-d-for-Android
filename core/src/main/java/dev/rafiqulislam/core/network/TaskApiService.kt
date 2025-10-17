@@ -13,27 +13,27 @@ import retrofit2.http.Query
 
 interface TaskApiService {
     
-    @GET("tasks")
+    @GET("api/tasks")
     suspend fun getAllTasks(): List<TaskDto>
     
-    @POST("tasks")
+    @POST("api/tasks")
     suspend fun createTask(@Body taskRequest: TaskRequestDto): TaskDto
     
-    @PUT("tasks/{id}")
+    @PUT("api/tasks/{id}")
     suspend fun updateTask(
         @Path("id") id: Long,
         @Body taskRequest: TaskRequestDto
     ): TaskDto
     
-    @DELETE("tasks/{id}")
+    @DELETE("api/tasks/{id}")
     suspend fun deleteTask(@Path("id") id: Long)
     
-    @DELETE("tasks")
+    @DELETE("api/tasks")
     suspend fun deleteAllTasks()
     
-    @GET("tasks/search")
+    @GET("api/tasks/search")
     suspend fun searchTasksByTitle(@Query("title") title: String): List<TaskDto>
     
-    @GET("tasks/search")
+    @GET("api/tasks/search")
     suspend fun searchTasksByDueDate(@Query("due_date") dueDate: String): List<TaskDto>
 }
