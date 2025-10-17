@@ -88,15 +88,29 @@ fun AddEditTaskScreen(
             OutlinedTextField(
                 value = title,
                 onValueChange = { newValue ->
-                    // Only allow input if under limit or if user is deleting characters
-                    if (newValue.length <= 50 || newValue.length < title.length) {
-                        title = newValue
-                        viewModel.validateTitle(newValue)
-                    }
+                    title = newValue
+                    viewModel.validateTitle(newValue)
                 },
                 label = { Text("Title *") },
                 isError = uiState?.titleError != null || title.length > 50,
-                supportingText = uiState?.titleError?.let { { Text(it) } },
+                supportingText = {
+                    Column {
+                        uiState?.titleError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (title.length > 50) {
+                            Text(
+                                text = "Character limit exceeded (${title.length}/50). Please remove ${title.length - 50} characters.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                },
                 trailingIcon = {
                     Text(
                         text = "${title.length}/50",
@@ -116,15 +130,29 @@ fun AddEditTaskScreen(
             OutlinedTextField(
                 value = description,
                 onValueChange = { newValue ->
-                    // Only allow input if under limit or if user is deleting characters
-                    if (newValue.length <= 200 || newValue.length < description.length) {
-                        description = newValue
-                        viewModel.validateDescription(newValue)
-                    }
+                    description = newValue
+                    viewModel.validateDescription(newValue)
                 },
                 label = { Text("Description") },
                 isError = uiState?.descriptionError != null || description.length > 200,
-                supportingText = uiState?.descriptionError?.let { { Text(it) } },
+                supportingText = {
+                    Column {
+                        uiState?.descriptionError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (description.length > 200) {
+                            Text(
+                                text = "Character limit exceeded (${description.length}/200). Please remove ${description.length - 200} characters.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                },
                 trailingIcon = {
                     Text(
                         text = "${description.length}/200",
@@ -174,19 +202,30 @@ fun AddEditTaskScreen(
             // Save Button
             Button(
                 onClick = {
-                    // Check for character limit errors and show toast
+                    // Check for validation errors and show toast
                     val errors = mutableListOf<String>()
                     
-                    if (title.length > 50) {
-                        errors.add("Title")
+                    // Check title validation errors
+                    if (uiState?.titleError != null) {
+                        errors.add("Title: ${uiState?.titleError}")
+                    } else if (title.length > 50) {
+                        errors.add("Title: Character limit exceeded (${title.length}/50)")
                     }
                     
-                    if (description.length > 200) {
-                        errors.add("Description")
+                    // Check description validation errors
+                    if (uiState?.descriptionError != null) {
+                        errors.add("Description: ${uiState?.descriptionError}")
+                    } else if (description.length > 200) {
+                        errors.add("Description: Character limit exceeded (${description.length}/200)")
+                    }
+                    
+                    // Check due date validation errors
+                    if (uiState?.dueDateError != null) {
+                        errors.add("Due Date: ${uiState?.dueDateError}")
                     }
                     
                     if (errors.isNotEmpty()) {
-                        val errorMessage = "Character limit exceeded in: ${errors.joinToString(", ")}"
+                        val errorMessage = "Validation errors:\n" + errors.joinToString("\n")
                         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                         return@Button
                     }
