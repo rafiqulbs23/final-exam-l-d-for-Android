@@ -84,13 +84,33 @@ fun AddEditTaskScreen(
             // Title Field
             OutlinedTextField(
                 value = title,
-                onValueChange = { 
-                    title = it
-                    viewModel.validateTitle(it)
+                onValueChange = { newValue ->
+                    // Only allow input if under limit or if user is deleting characters
+                    if (newValue.length <= 50 || newValue.length < title.length) {
+                        title = newValue
+                        viewModel.validateTitle(newValue)
+                    }
                 },
                 label = { Text("Title *") },
-                isError = uiState?.titleError != null,
-                supportingText = uiState?.titleError?.let { { Text(it) } },
+                isError = uiState?.titleError != null || title.length > 50,
+                supportingText = {
+                    Column {
+                        uiState?.titleError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (title.length > 50) {
+                            Text(
+                                text = "Character limit exceeded. Please remove some characters.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                },
                 trailingIcon = {
                     Text(
                         text = "${title.length}/50",
@@ -109,13 +129,33 @@ fun AddEditTaskScreen(
             // Description Field
             OutlinedTextField(
                 value = description,
-                onValueChange = { 
-                    description = it
-                    viewModel.validateDescription(it)
+                onValueChange = { newValue ->
+                    // Only allow input if under limit or if user is deleting characters
+                    if (newValue.length <= 200 || newValue.length < description.length) {
+                        description = newValue
+                        viewModel.validateDescription(newValue)
+                    }
                 },
                 label = { Text("Description") },
-                isError = uiState?.descriptionError != null,
-                supportingText = uiState?.descriptionError?.let { { Text(it) } },
+                isError = uiState?.descriptionError != null || description.length > 200,
+                supportingText = {
+                    Column {
+                        uiState?.descriptionError?.let { error ->
+                            Text(
+                                text = error,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        if (description.length > 200) {
+                            Text(
+                                text = "Character limit exceeded. Please remove some characters.",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                },
                 trailingIcon = {
                     Text(
                         text = "${description.length}/200",
