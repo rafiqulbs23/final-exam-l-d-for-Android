@@ -379,6 +379,7 @@ private fun SwipeToDeleteTaskItem(
     onDelete: () -> Unit
 ) {
     var offsetX by remember { mutableStateOf(0f) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
     val maxOffset = -200f
 
     Box(
@@ -408,7 +409,11 @@ private fun SwipeToDeleteTaskItem(
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.onError
+                    tint = MaterialTheme.colorScheme.onError,
+                    modifier = Modifier.clickable{
+                        showDeleteConfirmation = true
+                        offsetX = 0f
+                    }
                 )
             }
         }
@@ -426,9 +431,9 @@ private fun SwipeToDeleteTaskItem(
                     detectHorizontalDragGestures(      // 👈 only handle horizontal drags
                         onDragEnd = {
                             if (offsetX < maxOffset / 2) {
-                                onDelete()
+                               // onDelete()
                             }
-                            offsetX = 0f
+                           // offsetX = 0f
                         }
                     ) { _, dragAmount ->
                         offsetX = (offsetX + dragAmount).coerceIn(maxOffset, 0f)
@@ -463,6 +468,30 @@ private fun SwipeToDeleteTaskItem(
                 )
             }
         }
+    }
+
+    // Delete Confirmation Dialog
+    if (showDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            title = { Text("Delete Task") },
+            text = { Text("Are you sure you want to delete '${task.title}'? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDelete()
+                        showDeleteConfirmation = false
+                    }
+                ) {
+                    Text("Delete", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmation = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
