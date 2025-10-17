@@ -10,8 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
@@ -26,6 +28,7 @@ fun AddEditTaskScreen(
     taskId: Long? = null,
     onNavigateBack: () -> Unit
 ) {
+    val context = LocalContext.current
     var uiState by remember { mutableStateOf(viewModel.uiState.value) }
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
@@ -89,6 +92,13 @@ fun AddEditTaskScreen(
                     if (newValue.length <= 50 || newValue.length < title.length) {
                         title = newValue
                         viewModel.validateTitle(newValue)
+                    } else if (newValue.length > 50) {
+                        // Show toast when trying to exceed limit
+                        Toast.makeText(
+                            context, 
+                            "Title cannot exceed 50 characters (current: ${newValue.length})", 
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 },
                 label = { Text("Title *") },
@@ -134,6 +144,13 @@ fun AddEditTaskScreen(
                     if (newValue.length <= 200 || newValue.length < description.length) {
                         description = newValue
                         viewModel.validateDescription(newValue)
+                    } else if (newValue.length > 200) {
+                        // Show toast when trying to exceed limit
+                        Toast.makeText(
+                            context, 
+                            "Description cannot exceed 200 characters (current: ${newValue.length})", 
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 },
                 label = { Text("Description") },
@@ -205,6 +222,23 @@ fun AddEditTaskScreen(
             // Save Button
             Button(
                 onClick = {
+                    // Check for character limit errors and show toast
+                    val errors = mutableListOf<String>()
+                    
+                    if (title.length > 50) {
+                        errors.add("Title exceeds 50 characters (current: ${title.length})")
+                    }
+                    
+                    if (description.length > 200) {
+                        errors.add("Description exceeds 200 characters (current: ${description.length})")
+                    }
+                    
+                    if (errors.isNotEmpty()) {
+                        val errorMessage = "Please fix the following errors:\n" + errors.joinToString("\n")
+                        Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
+                        return@Button
+                    }
+                    
                     if (taskId != null) {
                         viewModel.updateTask(taskId, title, description, dueDate)
                     } else {
