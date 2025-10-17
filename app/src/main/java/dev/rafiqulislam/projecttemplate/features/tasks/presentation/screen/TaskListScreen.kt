@@ -11,6 +11,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -22,6 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
@@ -507,42 +509,77 @@ private fun FilterDialog(
     onApplyFilter: (String) -> Unit,
     onClearFilter: () -> Unit
 ) {
-    var selectedDate by remember { mutableStateOf("") }
+    var selectedDate by remember { mutableStateOf<Long?>(null) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = selectedDate ?: System.currentTimeMillis()
+    )
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Filter by Due Date") },
-        text = {
-            Column {
-                Text("Enter a date to filter tasks:")
-                Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
-                    value = selectedDate,
-                    onValueChange = { selectedDate = it },
-                    label = { Text("Due Date") },
-                    placeholder = { Text("yyyy-MM-dd") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { onApplyFilter(selectedDate) },
-                enabled = selectedDate.isNotEmpty()
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Apply Filter")
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onClearFilter) {
-                    Text("Clear Filter")
-                }
-                TextButton(onClick = onDismiss) {
-                    Text("Cancel")
+                Text(
+                    text = "Filter by Due Date",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                Text(
+                    text = "Select a date to filter tasks:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                DatePicker(
+                    state = datePickerState,
+                    modifier = Modifier.wrapContentSize()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    TextButton(
+                        onClick = onClearFilter,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Clear Filter")
+                    }
+                    
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Cancel")
+                    }
+                    
+                    Button(
+                        onClick = {
+                            datePickerState.selectedDateMillis?.let { millis ->
+                                val selectedDate = java.time.Instant.ofEpochMilli(millis)
+                                    .atZone(java.time.ZoneId.systemDefault())
+                                    .toLocalDate()
+                                onApplyFilter(selectedDate.format(DateTimeFormatter.ISO_LOCAL_DATE))
+                            }
+                        },
+                        enabled = datePickerState.selectedDateMillis != null,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Apply Filter")
+                    }
                 }
             }
         }
-    )
-
+    }
 }
