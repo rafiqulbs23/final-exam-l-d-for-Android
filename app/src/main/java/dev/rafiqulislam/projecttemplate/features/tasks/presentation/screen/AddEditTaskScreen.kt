@@ -44,6 +44,10 @@ fun AddEditTaskScreen(
     LaunchedEffect(Unit) {
         viewModel.uiState.observeForever { newState ->
             uiState = newState
+            // Update local form fields when ViewModel state changes
+            title = newState?.title ?: ""
+            description = newState?.description ?: ""
+            dueDate = newState?.dueDate ?: ""
         }
     }
 
