@@ -591,90 +591,30 @@ fun FilterDialog(
 ) {
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
-    Dialog(
+    DatePickerDialog(
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 500.dp) // Limit height for landscape
-                .wrapContentHeight()
-                .padding(vertical = 24.dp, horizontal = 4.dp),
-            shape = RoundedCornerShape(20.dp),
-            tonalElevation = 8.dp,
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Title
-                Text(
-                    text = "Filter by Due Date",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-
-                // Subtitle
-                Text(
-                    text = "Select a date to filter your tasks:",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
-
-                // Date Picker
-                DatePicker(
-                    state = datePickerState,
-                    showModeToggle = false, // optional cleaner look
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                        .padding(8.dp)
-                        .heightIn(max = 350.dp) // Limit height for landscape
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Buttons Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = onClearFilter,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Clear", color = MaterialTheme.colorScheme.primary)
-                    }
-
-                    OutlinedButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Cancel")
-                    }
-
-                    Button(
-                        onClick = {
-                            datePickerState.selectedDateMillis?.let { millis ->
-                                val selectedDate = Instant.ofEpochMilli(millis)
-                                    .atZone(ZoneId.systemDefault())
-                                    .toLocalDate()
-                                    .format(DateTimeFormatter.ISO_LOCAL_DATE)
-                                onApplyFilter(selectedDate)
-                            }
-                        },
-                        enabled = datePickerState.selectedDateMillis != null,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Apply")
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    datePickerState.selectedDateMillis?.let { millis ->
+                        val selectedDate = Instant.ofEpochMilli(millis)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDate()
+                            .format(DateTimeFormatter.ISO_LOCAL_DATE)
+                        onApplyFilter(selectedDate)
                     }
                 }
+            ) {
+                Text("Apply")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
+    ) {
+        DatePicker(state = datePickerState)
     }
 }
 

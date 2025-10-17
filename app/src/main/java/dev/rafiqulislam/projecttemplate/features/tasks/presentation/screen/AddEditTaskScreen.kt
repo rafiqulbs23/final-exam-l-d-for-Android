@@ -283,21 +283,8 @@ fun AddEditTaskScreen(
                 System.currentTimeMillis()
             }
         )
-        AlertDialog(
+        DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
-            title = { Text("Select Due Date") },
-            properties = DialogProperties(
-                usePlatformDefaultWidth = false,
-                decorFitsSystemWindows = false
-            ),
-            text = {
-                DatePicker(
-                    state = datePickerState,
-                    modifier = Modifier
-                        .wrapContentSize()
-                        .heightIn(max = 400.dp) // Limit height for landscape
-                )
-            },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -319,7 +306,9 @@ fun AddEditTaskScreen(
                     Text("Cancel")
                 }
             }
-        )
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 }
 
