@@ -11,16 +11,13 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -465,34 +462,20 @@ private fun FilterDialog(
     onClearFilter: () -> Unit
 ) {
     var selectedDate by remember { mutableStateOf("") }
-    var showDatePicker by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Filter by Due Date") },
         text = {
             Column {
-                Text("Select a date to filter tasks:")
+                Text("Enter a date to filter tasks:")
                 Spacer(modifier = Modifier.height(16.dp))
                 OutlinedTextField(
                     value = selectedDate,
-                    onValueChange = { 
-                        // Don't allow manual input, only through date picker
-                    },
+                    onValueChange = { selectedDate = it },
                     label = { Text("Due Date") },
-                    placeholder = { Text("Tap to select date (yyyy-MM-dd)") },
-                    readOnly = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { showDatePicker = true },
-                    trailingIcon = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = "Select Date"
-                            )
-                        }
-                    }
+                    placeholder = { Text("yyyy-MM-dd") },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         },
@@ -516,82 +499,4 @@ private fun FilterDialog(
         }
     )
 
-    if (showDatePicker) {
-        val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = if (selectedDate.isNotEmpty()) {
-                try {
-                    LocalDate.parse(selectedDate, DateTimeFormatter.ISO_LOCAL_DATE)
-                        .atStartOfDay()
-                        .atZone(java.time.ZoneId.systemDefault())
-                        .toInstant()
-                        .toEpochMilli()
-                } catch (e: Exception) {
-                    System.currentTimeMillis()
-                }
-            } else {
-                System.currentTimeMillis()
-            }
-        )
-
-        Dialog(
-            onDismissRequest = { showDatePicker = false }
-        ) {
-            Card(
-                modifier = Modifier
-                    .width(380.dp)
-                    .wrapContentHeight()
-                    .padding(8.dp),
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
-                ) {
-                    Text(
-                        text = "Select Filter Date",
-                        style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    
-                    // Use a more spacious layout for the date picker
-                    Box(
-                        modifier = Modifier
-                            .width(340.dp)
-                            .height(420.dp)
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        DatePicker(
-                            state = datePickerState,
-                            modifier = Modifier
-                                .fillMaxSize()
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        TextButton(onClick = { showDatePicker = false }) {
-                            Text("Cancel")
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        TextButton(
-                            onClick = {
-                                datePickerState.selectedDateMillis?.let { millis ->
-                                    val selectedDateValue = java.time.Instant.ofEpochMilli(millis)
-                                        .atZone(java.time.ZoneId.systemDefault())
-                                        .toLocalDate()
-                                    selectedDate = selectedDateValue.format(DateTimeFormatter.ISO_LOCAL_DATE)
-                                }
-                                showDatePicker = false
-                            }
-                        ) {
-                            Text("OK")
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
