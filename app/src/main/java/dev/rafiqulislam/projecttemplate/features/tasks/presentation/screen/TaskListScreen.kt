@@ -27,7 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

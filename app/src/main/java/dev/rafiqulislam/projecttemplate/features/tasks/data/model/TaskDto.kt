@@ -1,6 +1,6 @@
-package dev.rafiqulislam.core.data.model
+package dev.rafiqulislam.projecttemplate.features.tasks.data.model
 
-import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import kotlinx.serialization.Serializable
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter

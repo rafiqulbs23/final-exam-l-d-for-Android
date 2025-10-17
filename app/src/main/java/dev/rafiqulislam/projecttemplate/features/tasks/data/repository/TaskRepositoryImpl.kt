@@ -1,10 +1,10 @@
-package dev.rafiqulislam.core.data.repositoryImpl
+package dev.rafiqulislam.projecttemplate.features.tasks.data.repository
 
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.data.model.TaskRequestDto
-import dev.rafiqulislam.core.domain.entity.Task
-import dev.rafiqulislam.core.domain.repository.TaskRepository
-import dev.rafiqulislam.core.network.TaskApiService
+import dev.rafiqulislam.projecttemplate.features.tasks.data.model.TaskRequestDto
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.repository.TaskRepository
+import dev.rafiqulislam.projecttemplate.features.tasks.data.network.TaskApiService
 import java.time.LocalDate
 import javax.inject.Inject
 

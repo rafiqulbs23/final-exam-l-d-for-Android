@@ -1,8 +1,8 @@
-package dev.rafiqulislam.core.domain.usecase
+package dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase
 
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.domain.entity.Task
-import dev.rafiqulislam.core.domain.repository.TaskRepository
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.repository.TaskRepository
 import javax.inject.Inject
 
 class SearchTasksByTitleUseCase @Inject constructor(

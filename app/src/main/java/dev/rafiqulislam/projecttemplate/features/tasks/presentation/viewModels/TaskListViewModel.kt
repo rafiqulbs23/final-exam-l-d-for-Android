@@ -7,11 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.domain.entity.Task
-import dev.rafiqulislam.core.domain.usecase.DeleteTaskUseCase
-import dev.rafiqulislam.core.domain.usecase.GetAllTasksUseCase
-import dev.rafiqulislam.core.domain.usecase.SearchTasksByDueDateUseCase
-import dev.rafiqulislam.core.domain.usecase.SearchTasksByTitleUseCase
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.DeleteTaskUseCase
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.GetAllTasksUseCase
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.SearchTasksByDueDateUseCase
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.SearchTasksByTitleUseCase
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.LiveData
 import kotlinx.coroutines.launch

@@ -1,7 +1,7 @@
-package dev.rafiqulislam.core.domain.repository
+package dev.rafiqulislam.projecttemplate.features.tasks.domain.repository
 
 import dev.rafiqulislam.core.base.Result
-import dev.rafiqulislam.core.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import java.time.LocalDate
 
 interface TaskRepository {

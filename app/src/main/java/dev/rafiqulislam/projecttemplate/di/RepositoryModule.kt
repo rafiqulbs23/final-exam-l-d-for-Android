@@ -1,21 +1,24 @@
-package dev.rafiqulislam.core.di
+package dev.rafiqulislam.projecttemplate.di
 
+import dev.rafiqulislam.core.data.repository.TokenRepository
+import dev.rafiqulislam.core.data.repositoryImpl.TokenRepositoryImpl
+import dev.rafiqulislam.projecttemplate.features.tasks.data.repository.TaskRepositoryImpl
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.repository.TaskRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import javax.inject.Singleton
 
-
-@Module
 @InstallIn(SingletonComponent::class)
+@Module
 abstract class RepositoryModule {
+    @Binds
+    abstract fun bindTokenRepository(
+        tokenRepositoryImpl: TokenRepositoryImpl
+    ): TokenRepository
 
-/*    @Binds
-    @Singleton
-    abstract fun provideMovieRepository(
-        postRepositoryImpl: PostRepositoryImpl
-    ): PostsRepository*/
-
-
+    @Binds
+    abstract fun bindTaskRepository(
+        taskRepositoryImpl: TaskRepositoryImpl
+    ): TaskRepository
 }

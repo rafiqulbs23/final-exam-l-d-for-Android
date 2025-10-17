@@ -1,4 +1,4 @@
-package dev.rafiqulislam.core.domain.entity
+package dev.rafiqulislam.projecttemplate.features.tasks.domain.entity
 
 import java.time.LocalDate
 

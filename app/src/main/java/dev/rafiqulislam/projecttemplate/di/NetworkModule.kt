@@ -4,7 +4,7 @@ package dev.rafiqulislam.projecttemplate.di
 
 import android.content.Context
 import dev.rafiqulislam.core.network.NetworkFactory
-import dev.rafiqulislam.core.network.TaskApiService
+import dev.rafiqulislam.projecttemplate.features.tasks.data.network.TaskApiService
 import com.incepta.msfa.shared.data.remote.AppApiService
 import dagger.Module
 import dagger.Provides

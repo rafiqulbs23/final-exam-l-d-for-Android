@@ -1,8 +1,7 @@
-package dev.rafiqulislam.core.network
+package dev.rafiqulislam.projecttemplate.features.tasks.data.network
 
-import dev.rafiqulislam.core.data.model.TaskDto
-import dev.rafiqulislam.core.data.model.TaskRequestDto
-import retrofit2.Response
+import dev.rafiqulislam.projecttemplate.features.tasks.data.model.TaskDto
+import dev.rafiqulislam.projecttemplate.features.tasks.data.model.TaskRequestDto
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
