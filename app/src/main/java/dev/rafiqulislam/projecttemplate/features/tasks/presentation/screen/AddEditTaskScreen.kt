@@ -286,7 +286,7 @@ fun AddEditTaskScreen(
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             val selectedDate = java.time.Instant.ofEpochMilli(millis)
