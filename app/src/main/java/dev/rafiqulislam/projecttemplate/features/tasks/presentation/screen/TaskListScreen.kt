@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
@@ -69,10 +70,19 @@ fun TaskListScreen(
         filterDate = uiState?.filterDate ?: ""
     }
 
+    // Debounced search effect
     LaunchedEffect(searchQuery, filterDate) {
         when {
-            searchQuery.isNotEmpty() -> {
-                viewModel.searchTasksByTitle(searchQuery)
+            searchQuery.isNotEmpty() && searchQuery.length >= 3 -> {
+                // Debounce search by 500ms
+                delay(500)
+                if (searchQuery.length >= 3) {
+                    viewModel.searchTasksByTitle(searchQuery)
+                }
+            }
+            searchQuery.isNotEmpty() && searchQuery.length < 3 -> {
+                // If search query is less than 3 characters, load all tasks
+                viewModel.loadTasks()
             }
             filterDate.isNotEmpty() -> {
                 viewModel.searchTasksByDueDate(filterDate)
@@ -265,7 +275,17 @@ private fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        placeholder = { Text("Search tasks...") },
+        label = { Text("Search tasks") },
+        placeholder = { Text("Enter at least 3 characters...") },
+        supportingText = if (query.isNotEmpty() && query.length < 3) {
+            { 
+                Text(
+                    text = "Enter at least 3 characters to search",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        } else null,
         modifier = modifier,
         singleLine = true
     )
