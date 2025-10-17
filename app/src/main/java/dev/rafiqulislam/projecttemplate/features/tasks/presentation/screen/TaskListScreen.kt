@@ -137,11 +137,14 @@ fun TaskListScreen(
             }
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
             if (showSearchBar) {
                 SearchBar(
                     query = searchQuery,
@@ -225,6 +228,7 @@ fun TaskListScreen(
                     )
                 }
             }
+            }
         }
     }
 
@@ -306,7 +310,7 @@ private fun TaskList(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxHeight(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
