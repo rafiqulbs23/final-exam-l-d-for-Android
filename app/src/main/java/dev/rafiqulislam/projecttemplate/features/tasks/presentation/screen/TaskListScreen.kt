@@ -6,6 +6,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -134,6 +135,7 @@ fun TaskListScreen(
                     TaskList(
                         tasks = uiState.tasks,
                         onTaskClick = onNavigateToEditTask,
+                        onTaskLongPress = onNavigateToEditTask,
                         onTaskDelete = { task ->
                             deletedTask = task
                             showUndoSnackbar = true
@@ -166,6 +168,7 @@ private fun SearchBar(
 private fun TaskList(
     tasks: List<Task>,
     onTaskClick: (Long) -> Unit,
+    onTaskLongPress: (Long) -> Unit,
     onTaskDelete: (Task) -> Unit
 ) {
     LazyColumn(
@@ -177,6 +180,7 @@ private fun TaskList(
             SwipeToDeleteTaskItem(
                 task = task,
                 onClick = { onTaskClick(task.id ?: 0L) },
+                onLongPress = { onTaskLongPress(task.id ?: 0L) },
                 onDelete = { onTaskDelete(task) }
             )
         }
@@ -187,6 +191,7 @@ private fun TaskList(
 private fun SwipeToDeleteTaskItem(
     task: Task,
     onClick: () -> Unit,
+    onLongPress: () -> Unit,
     onDelete: () -> Unit
 ) {
     var offsetX by remember { mutableStateOf(0f) }
@@ -230,6 +235,11 @@ private fun SwipeToDeleteTaskItem(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(x = offsetX.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onLongPress = { onLongPress() }
+                    )
+                }
                 .pointerInput(Unit) {
                     detectDragGestures(
                         onDragEnd = {
