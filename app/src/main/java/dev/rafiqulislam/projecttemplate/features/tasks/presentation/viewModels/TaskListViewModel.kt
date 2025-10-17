@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.rafiqulislam.core.base.Result
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
+import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.DeleteAllTasksUseCase
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.DeleteTaskUseCase
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.GetAllTasksUseCase
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.usecase.SearchTasksByDueDateUseCase
@@ -25,6 +26,7 @@ class TaskListViewModel @Inject constructor(
     private val searchTasksByTitleUseCase: SearchTasksByTitleUseCase,
     private val searchTasksByDueDateUseCase: SearchTasksByDueDateUseCase,
     private val deleteTaskUseCase: DeleteTaskUseCase,
+    private val deleteAllTasksUseCase: DeleteAllTasksUseCase,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -165,11 +167,22 @@ class TaskListViewModel @Inject constructor(
 
     fun deleteAllTasks() {
         viewModelScope.launch {
-            // For now, we'll implement this by deleting tasks one by one
-            // In a real app, you might want to add a deleteAllTasks use case
-            val tasks = _uiState.value?.tasks ?: emptyList()
-            for (task in tasks) {
-                task.id?.let { deleteTask(it) }
+            _uiState.value = _uiState.value?.copy(isLoading = true, error = null)
+            
+            when (val result = deleteAllTasksUseCase()) {
+                is Result.Success -> {
+                    _uiState.value = _uiState.value?.copy(
+                        isLoading = false,
+                        tasks = emptyList(),
+                        error = null
+                    )
+                }
+                is Result.Error -> {
+                    _uiState.value = _uiState.value?.copy(
+                        isLoading = false,
+                        error = result.exception.message
+                    )
+                }
             }
         }
     }

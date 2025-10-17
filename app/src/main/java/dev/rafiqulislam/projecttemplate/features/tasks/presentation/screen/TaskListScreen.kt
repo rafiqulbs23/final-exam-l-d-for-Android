@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -45,6 +46,7 @@ fun TaskListScreen(
     var showSearchBar by remember { mutableStateOf(false) }
     var showFilterDialog by remember { mutableStateOf(false) }
     var filterDate by remember { mutableStateOf(uiState?.filterDate ?: "") }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
 
     // Observe LiveData changes
     LaunchedEffect(Unit) {
@@ -97,6 +99,16 @@ fun TaskListScreen(
                                 MaterialTheme.colorScheme.onSurface
                             }
                         )
+                    }
+                    // Show Delete All button only when there are tasks
+                    if (uiState?.tasks?.isNotEmpty() == true) {
+                        IconButton(onClick = { showDeleteAllDialog = true }) {
+                            Icon(
+                                Icons.Default.DeleteSweep, 
+                                contentDescription = "Delete All Tasks",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
                 }
             )
@@ -210,6 +222,32 @@ fun TaskListScreen(
             onClearFilter = {
                 filterDate = ""
                 showFilterDialog = false
+            }
+        )
+    }
+
+    // Delete All Confirmation Dialog
+    if (showDeleteAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAllDialog = false },
+            title = { Text("Delete All Tasks") },
+            text = { 
+                Text("Are you sure you want to delete all tasks? This action cannot be undone.") 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAllTasks()
+                        showDeleteAllDialog = false
+                    }
+                ) {
+                    Text("Delete All", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAllDialog = false }) {
+                    Text("Cancel")
+                }
             }
         )
     }
