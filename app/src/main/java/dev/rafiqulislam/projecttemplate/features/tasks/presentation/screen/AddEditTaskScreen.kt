@@ -92,35 +92,11 @@ fun AddEditTaskScreen(
                     if (newValue.length <= 50 || newValue.length < title.length) {
                         title = newValue
                         viewModel.validateTitle(newValue)
-                    } else if (newValue.length > 50) {
-                        // Show toast when trying to exceed limit
-                        Toast.makeText(
-                            context, 
-                            "Title cannot exceed 50 characters (current: ${newValue.length})", 
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 },
                 label = { Text("Title *") },
                 isError = uiState?.titleError != null || title.length > 50,
-                supportingText = {
-                    Column {
-                        uiState?.titleError?.let { error ->
-                            Text(
-                                text = error,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        if (title.length > 50) {
-                            Text(
-                                text = "Character limit exceeded (${title.length}/50). Please remove ${title.length - 50} characters.",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                },
+                supportingText = uiState?.titleError?.let { { Text(it) } },
                 trailingIcon = {
                     Text(
                         text = "${title.length}/50",
@@ -144,35 +120,11 @@ fun AddEditTaskScreen(
                     if (newValue.length <= 200 || newValue.length < description.length) {
                         description = newValue
                         viewModel.validateDescription(newValue)
-                    } else if (newValue.length > 200) {
-                        // Show toast when trying to exceed limit
-                        Toast.makeText(
-                            context, 
-                            "Description cannot exceed 200 characters (current: ${newValue.length})", 
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 },
                 label = { Text("Description") },
                 isError = uiState?.descriptionError != null || description.length > 200,
-                supportingText = {
-                    Column {
-                        uiState?.descriptionError?.let { error ->
-                            Text(
-                                text = error,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        if (description.length > 200) {
-                            Text(
-                                text = "Character limit exceeded (${description.length}/200). Please remove ${description.length - 200} characters.",
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                },
+                supportingText = uiState?.descriptionError?.let { { Text(it) } },
                 trailingIcon = {
                     Text(
                         text = "${description.length}/200",
@@ -226,15 +178,15 @@ fun AddEditTaskScreen(
                     val errors = mutableListOf<String>()
                     
                     if (title.length > 50) {
-                        errors.add("Title exceeds 50 characters (current: ${title.length})")
+                        errors.add("Title")
                     }
                     
                     if (description.length > 200) {
-                        errors.add("Description exceeds 200 characters (current: ${description.length})")
+                        errors.add("Description")
                     }
                     
                     if (errors.isNotEmpty()) {
-                        val errorMessage = "Please fix the following errors:\n" + errors.joinToString("\n")
+                        val errorMessage = "Character limit exceeded in: ${errors.joinToString(", ")}"
                         Toast.makeText(context, errorMessage, Toast.LENGTH_LONG).show()
                         return@Button
                     }
