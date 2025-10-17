@@ -20,11 +20,11 @@ android {
 
     buildTypes {
         debug{
-            buildConfigField("String", "BASE_URL", "\"https://jsonplaceholder.typicode.com/\"")
+            buildConfigField("String", "BASE_URL", "\"http://54.169.255.115:8080/\"")
         }
         release {
             isMinifyEnabled = false
-            buildConfigField("String", "BASE_URL", "\"https://dev.inceptapharma.com:5004/\"")
+            buildConfigField("String", "BASE_URL", "\"http://54.169.255.115:8080/\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
