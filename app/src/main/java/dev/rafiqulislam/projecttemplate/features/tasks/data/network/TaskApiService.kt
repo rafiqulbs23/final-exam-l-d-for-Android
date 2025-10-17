@@ -33,6 +33,6 @@ interface TaskApiService {
     @GET("api/tasks/search")
     suspend fun searchTasksByTitle(@Query("title") title: String): List<TaskDto>
     
-    @GET("api/tasks/search")
-    suspend fun searchTasksByDueDate(@Query("due_date") dueDate: String): List<TaskDto>
+    @GET("api/tasks/due")
+    suspend fun searchTasksByDueDate(@Query("dueDate") dueDate: String): List<TaskDto>
 }

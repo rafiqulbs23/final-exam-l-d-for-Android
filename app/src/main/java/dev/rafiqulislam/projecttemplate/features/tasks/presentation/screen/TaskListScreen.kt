@@ -38,6 +38,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.DialogProperties
 import dev.rafiqulislam.projecttemplate.features.tasks.domain.entity.Task
 import dev.rafiqulislam.projecttemplate.features.tasks.presentation.viewModels.TaskListViewModel
 import kotlinx.coroutines.launch
@@ -579,12 +580,15 @@ fun FilterDialog(
 ) {
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
-    Dialog(onDismissRequest = onDismiss) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                .padding(24.dp),
+                .padding(vertical = 24.dp, horizontal = 4.dp),
             shape = RoundedCornerShape(20.dp),
             tonalElevation = 8.dp,
             color = MaterialTheme.colorScheme.surface
